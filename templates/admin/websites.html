@@ -1,0 +1,187 @@
+{{define "admin/websites.html"}}
+{{template "default/header.html" .}}
+
+<main role="main" class="content">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>网站管理</h4>
+            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#websiteModal" onclick="resetForm()">新增网站</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>分组</th>
+                    <th>URL</th>
+                    <th>Logo</th>
+                    <th>描述</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="websiteList">
+                {{ range .websites }}
+                <tr>
+                    <td>{{ .Id }}</td>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Group.Name }}</td>
+                    <td>{{ .Url }}</td>
+                    <td><img src="{{ .Logo }}" style="width: 32px"/></td>
+                    <td>{{ .Description }}</td>
+                    <td>{{ .CreatedAt }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#websiteModal" onclick='editWebsite({{ .Id }}, "{{ .Name }}", "{{ .GroupId }}", "{{ .Url }}", "{{ .Logo }}", "{{ .Description }}")'>编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteWebsite({{ .Id }})">删除</button>
+                    </td>
+                </tr>
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Modal -->
+<div class="modal fade" id="websiteModal" tabindex="-1" aria-labelledby="websiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="websiteForm" action="/admin/websites/save" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="websiteModalLabel">新增网站</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="websiteId" name="id" value="0">
+                    <div class="form-group">
+                        <label for="url">URL 必填项：系统会根据URL自动抓取信息</label>
+                        <input type="text" class="form-control" id="url" name="url" required>
+                        <br>
+                        <button type="button" class="btn btn-danger btn-sm" id="fetchBtn">抓取</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">名称</label>
+                        <input type="text" class="form-control" id="name" name="name" >
+                    </div>
+                    <div class="form-group">
+                        <label for="groupId">分组</label>
+                        <select class="form-control" id="groupId" name="group_id" required>
+                            {{ range .groups }}
+                            <option value="{{ .Id }}">{{ .Name }}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="logo">Logo</label>
+                        <input type="text" class="form-control" id="logo" name="logo" >
+                        <img id="faviconPreview" src="" style="width:32px;margin-top:5px;display:none;" />
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea class="form-control" id="description" name="description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+<script>
+    $(function () {
+
+        // 抓取按钮点击事件
+        $('#fetchBtn').on('click', function () {
+            const url = $('#url').val().trim();
+
+            if (!url) {
+                alert('请输入有效的 URL');
+                return;
+            }
+
+            // 使用正则验证 URL 格式
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([/\w \.-]*)*\/?$/;
+            if (!urlPattern.test(url)) {
+                alert('请输入合法的 URL，例如：https://example.com');
+                return;
+            }
+
+            console.log("发送请求，URL:", url); // 调试输出
+
+            $.ajax({
+                url: '/admin/websites/fetch-meta',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ url: url }),
+                success: function(res) {
+                    if (res.code === 0) {
+                        if (res.title) $('#name').val(res.title);
+                        if (res.description) $('#description').val(res.description);
+                        if (res.favicon) {
+                            $('#logo').val(res.favicon);
+                            $('#faviconPreview').attr('src', res.favicon).show();
+                        }
+                    } else {
+                        alert('抓取失败: ' + (res.msg || '未知错误'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("请求失败");
+                    console.log("响应内容:", xhr.responseText);
+                    alert('请求失败，请查看控制台日志');
+                }
+            });
+        });
+
+
+        // 其他函数也可以放在这里
+        window.editWebsite = function(id, name, groupId, url, logo, description) {
+            $('#websiteModalLabel').text('编辑网站');
+            $('#websiteId').val(id);
+            $('#name').val(name);
+            $('#groupId').val(groupId);
+            $('#url').val(url);
+            $('#logo').val(logo);
+            $('#description').val(description);
+        };
+
+        window.deleteWebsite = function(id) {
+            if (confirm('确定要删除该网站吗？')) {
+                $.post('/admin/websites/delete', {id: id}, function(res) {
+                    if (res.code === 0) {
+                        location.reload();
+                    } else {
+                        alert(res.msg);
+                    }
+                }, 'json');
+            }
+        };
+
+        window.resetForm = function() {
+            $('#websiteModalLabel').text('新增网站');
+            $('#websiteId').val(0);
+            $('#name').val('');
+            $('#groupId').val('');
+            $('#url').val('');
+            $('#logo').val('');
+            $('#description').val('');
+        };
+    });
+</script>
+
+
+
+</body>
+</html>
+{{end}}

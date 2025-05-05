@@ -1,0 +1,100 @@
+{{define "admin/user.html"}}
+{{template "default/header.html" .}}
+
+<main role="main" class="content">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>用户管理</h4>
+            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#userModal" onclick="resetForm()">新增用户</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="userList">
+                {{ range .users }}
+                <tr>
+                    <td>{{ .Id }}</td>
+                    <td>{{ .Username }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#userModal" onclick='editUser({{ .Id }}, "{{ .Username }}")'>编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser({{ .Id }})">删除</button>
+                    </td>
+                </tr>
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="userForm" action="/admin/user/save" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">新增用户</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="userId" name="id" value="0">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">{{ if eq "" "0" }}新密码{{ else }}密码（留空不修改）{{ end }}</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+<script>
+    function editUser(id, username) {
+        $('#userModalLabel').text('编辑用户');
+        $('#userId').val(id);
+        $('#username').val(username);
+        $('#password').attr('placeholder', '留空则不修改密码');
+    }
+
+    function deleteUser(id) {
+        if (confirm('确定要删除该用户吗？')) {
+            $.post('/admin/user/delete', {id: id}, function(res) {
+                if (res.code === 0) {
+                    location.reload();
+                } else {
+                    alert(res.msg);
+                }
+            }, 'json');
+        }
+    }
+
+    function resetForm() {
+        $('#userModalLabel').text('新增用户');
+        $('#userId').val(0);
+        $('#username').val('');
+        $('#password').removeAttr('placeholder');
+        $('#password').val('');
+    }
+</script>
+
+</body>
+</html>
+{{end}}

@@ -1,0 +1,97 @@
+{{define "admin/dashboard.html"}}
+{{template "default/header.html" .}}
+
+        <main role="main" class="content">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">仪表盘</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">网站总数</h5>
+                    <p class="card-text display-4">{{.websiteCount}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">分类总数</h5>
+                    <p class="card-text display-4">{{.categoryCount}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">今日访问量</h5>
+                    <p class="card-text display-4">{{.todayVisits}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">最近添加的网站</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>网站名称</th>
+                                    <th>URL</th>
+                                    <th>添加时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .recentWebsites}}
+                                <tr>
+                                    <td>{{.Name}}</td>
+                                    <td>{{.Url}}</td>
+                                    <td>{{.CreatedAt}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">系统信息</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>操作系统：</strong>{{.systemInfo.OS}}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Go版本：</strong>{{.systemInfo.GoVersion}}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>CPU核心数：</strong>{{.systemInfo.CPUCount}}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>内存使用：</strong>{{.systemInfo.MemoryUsage}} MB
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
+</div>
+</div>
+
+<script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{{end}}

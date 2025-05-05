@@ -1,0 +1,72 @@
+{{ define "default/header.html" }}
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - WebStack管理系统</title>
+    <!-- Bootstrap CSS 国内 CDN ，使用 Bootstrap 中文网的 CDN -->
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS 国内 CDN ，使用 jsDelivr 的国内节点 -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/assets/css/admin.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/fonts/linecons/css/linecons.css">
+
+
+
+
+</head>
+<body>
+<nav class="navbar navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="/admin/dashboard">WebStack管理系统</a>
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/logout">
+                <i class="fa fa-sign-out"></i> 退出登录
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <nav class="sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {{if eq .title "管理后台"}}active{{end}}" href="/admin/dashboard">
+                        <i class="fa fa-dashboard"></i>
+                        仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{if eq .title "网站管理"}}active{{end}}" href="/admin/websites">
+                        <i class="fa fa-globe"></i>
+                        网站管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{if eq .title "分类管理"}}active{{end}}" href="/admin/groups">
+                        <i class="fa fa-list"></i>
+                        分类管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{if eq .title "用户管理"}}active{{end}}" href="/admin/user">
+                        <i class="fa fa-user"></i>
+                        用户管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{if eq .title "系统设置"}}active{{end}}" href="/admin/settings">
+                        <i class="fa fa-cog"></i>
+                        系统设置
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+{{end}}

@@ -1,0 +1,167 @@
+{{define "admin/group.html"}}
+{{template "default/header.html" .}}
+
+<main role="main" class="content">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>分类管理</h4>
+            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#groupModal" onclick="resetForm()">新增分类</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>LOGO</th>
+                    <th>排序</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="groupList">
+                {{ range .groups }}
+                <tr>
+                    <td>{{.Id}}</td>
+                    <td>{{.Name}}</td>
+                    <td><i class="{{ .Logo }}"></i></td>
+                    <td>{{.Sort}}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#groupModal" onclick='editGroup({{.Id}}, "{{.Name}}", "{{.Logo}}", {{.Sort}})'>编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteGroup({{.Id}})">删除</button>
+                    </td>
+                </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Modal -->
+<div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="groupForm" action="/admin/groups/save" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupModalLabel">新增分类</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="groupName">ID</label>
+                        <input type="text" class="form-control" readonly id="groupId" name="groupid" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="groupName">分类名称</label>
+                        <input type="text" class="form-control" id="groupName" name="groupname" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="groupLogo">LOGO</label>
+
+                            <select id="groupLogo" class="form-control"  name="grouplogo"  multiple="" data-max-options="1" tabindex="null">
+                                <option value="linecons-music" class="linecons-music">music</option>
+                                <option value="linecons-search" class="linecons-search">search</option>
+                                <option value="linecons-mail" class="linecons-mail">mail</option>
+                                <option value="linecons-heart" class="linecons-heart">heart</option>
+                                <option value="linecons-star" class="linecons-star">star</option>
+                                <option value="linecons-user" class="linecons-user">user</option>
+                                <option value="linecons-videocam" class="linecons-videocam">videocam</option>
+                                <option value="linecons-camera" class="linecons-camera">camera</option>
+                                <option value="linecons-photo" class="linecons-photo">photo</option>
+                                <option value="linecons-attach" class="linecons-attach">attach</option>
+                                <option value="linecons-lock" class="linecons-lock">lock</option>
+                                <option value="linecons-eye" class="linecons-eye">eye</option>
+                                <option value="linecons-tag" class="linecons-tag">tag</option>
+                                <option value="linecons-thumbs-up" class="linecons-thumbs-up">thumbs-up</option>
+                                <option value="linecons-pencil" class="linecons-pencil">pencil</option>
+                                <option value="linecons-comment" class="linecons-comment">comment</option>
+                                <option value="linecons-location" class="linecons-location">location</option>
+                                <option value="linecons-cup" class="linecons-cup">cup</option>
+                                <option value="linecons-trash" class="linecons-trash">trash</option>
+                                <option value="linecons-doc" class="linecons-doc">doc</option>
+                                <option value="linecons-note" class="linecons-note">note</option>
+                                <option value="linecons-cog" class="linecons-cog">cog</option>
+                                <option value="linecons-params" class="linecons-params">params</option>
+                                <option value="linecons-calendar" class="linecons-calendar">calendar</option>
+                                <option value="linecons-upsound" class="linecons-upsound">sound</option>
+                                <option value="linecons-clock" class="linecons-clock">clock</option>
+                                <option value="linecons-lightbulb" class="linecons-lightbulb">lightbulb</option>
+                                <option value="linecons-tv" class="linecons-tv">tv</option>
+                                <option value="linecons-desktop" class="linecons-desktop">desktop</option>
+                                <option value="linecons-mobile" class="linecons-mobile">mobile</option>
+                                <option value="linecons-cd" class="linecons-cd">cd</option>
+                                <option value="linecons-inbox" class="linecons-inbox">inbox</option>
+                                <option value="linecons-globe" class="linecons-globe">globe</option>
+                                <option value="linecons-cloud" class="linecons-cloud">cloud</option>
+                                <option value="linecons-paper-plane" class="linecons-paper-plane">paper-plane</option>
+                                <option value="linecons-fire" class="linecons-fire">fire</option>
+                                <option value="linecons-graduation-cap" class="linecons-graduation-cap">graduation-cap</option>
+                                <option value="linecons-megaphone" class="linecons-megaphone">megaphone</option>
+                                <option value="linecons-database" class="linecons-database">database</option>
+                                <option value="linecons-key" class="linecons-key">key</option>
+                                <option value="linecons-beaker" class="linecons-beaker">beaker</option>
+                                <option value="linecons-truck" class="linecons-truck">truck</option>
+                                <option value="linecons-money" class="linecons-money">money</option>
+                                <option value="linecons-food" class="linecons-food">food</option>
+                                <option value="linecons-shop" class="linecons-shop">shop</option>
+                                <option value="linecons-diamond" class="linecons-diamond">diamond</option>
+                                <option value="linecons-t-shirt" class="linecons-t-shirt">t-shirt</option>
+                                <option value="linecons-wallet" class="linecons-wallet">wallet</option>
+                            </select>
+
+
+
+                    </div>
+                    <div class="form-group">
+                        <label for="groupSort">排序</label>
+                        <input type="number" class="form-control" id="groupSort" name="sort"  required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+<script>
+    function editGroup(id, name, logo,sort) {
+        $('#groupModalLabel').text('编辑分类');
+        $('#groupId').val(id);
+        $('#groupName').val(name);
+        $('#groupLogo').val(logo);
+        $('#groupSort').val(sort);
+    }
+
+    function deleteGroup(id) {
+        if (confirm('确定要删除该分类吗？')) {
+            $.post('/admin/groups/delete', {id: id}, function(res) {
+                if (res.code === 0) {
+                    location.reload();
+                } else {
+                    alert(res.msg);
+                }
+            }, 'json');
+        }
+    }
+
+    function resetForm() {
+        $('#groupModalLabel').text('新增分类');
+        $('#groupId').val(0);
+        $('#groupForm')[0].reset();
+    }
+</script>
+
+
+
+
+</body>
+</html>
+{{end}}

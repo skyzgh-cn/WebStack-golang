@@ -1659,7 +1659,7 @@ function date(format, timestamp) {
 	// bugfixed by: Brett Zamir (http://brett-zamir.me)
 	// bugfixed by: omid (http://phpjs.org/functions/380:380#comment_137122)
 	// bugfixed by: Chris (http://www.devotis.nl/)
-	//		note: Uses global: php_js to store the default timezone
+	//		note: Uses global: php_js to store the index timezone
 	//		note: Although the function potentially allows timezone info (see notes), it currently does not set
 	//		note: per a timezone specified by date_default_timezone_set(). Implementers might use
 	//		note: this.php_js.currentTimezoneOffset and this.php_js.currentTimezoneDST set by that function

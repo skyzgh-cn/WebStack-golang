@@ -1,0 +1,103 @@
+{{ define "admin/login.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - WebStack管理系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .login-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2 class="login-title">WebStack管理系统</h2>
+        <form id="loginForm" method="POST" action="/admin/login" autocomplete="off">
+            <div class="mb-3">
+                <label for="username" class="form-label">用户名</label>
+                <input type="text" class="form-control" id="username" name="username" required autocomplete="off">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">密码</label>
+                <input type="password" class="form-control" id="password" name="password" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">登录</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // 禁用提交按钮，防止重复提交
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 登录中...');
+                
+                $.ajax({
+                    url: '/admin/login',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(res) {
+                        console.log('登录响应:', res);
+                        if(res.code === 0) {
+                            // 使用延迟跳转，确保cookie已经设置
+                            setTimeout(function() {
+                                console.log('准备跳转到仪表盘...');
+                                window.location.replace('/admin/dashboard');
+                            }, 100);
+                        } else {
+                            alert(res.msg);
+                            // 登录失败时重新启用提交按钮
+                            submitBtn.prop('disabled', false);
+                            submitBtn.html('登录');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('登录失败:', status, error);
+                        console.log('响应:', xhr.responseText);
+                        alert('登录请求失败，请重试');
+                        // 请求失败时重新启用提交按钮
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html('登录');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+{{ end }}

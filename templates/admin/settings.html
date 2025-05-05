@@ -1,0 +1,59 @@
+{{define "admin/settings.html"}}
+{{template "default/header.html" .}}
+
+        <main role="main" class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h4>系统设置</h4>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/settings" method="POST">
+                        <input type="hidden" name="Id" value="{{.site.Id}}"></input>
+                        <div class="form-group">
+                            <label for="sitename">网站名称</label>
+                            <input type="text" class="form-control" id="sitename" name="Sitename" value="{{.site.Sitename}}">
+                        </div>
+                        <div class="form-group">
+                            <label for="siteurl">网站地址</label>
+                            <input type="text" class="form-control" id="siteurl" name="Siteurl" value="{{.site.Siteurl}}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sitelogo">网站LOGO</label>
+                            <input type="text" class="form-control" id="sitelogo" name="Sitelogo" value="{{.site.Sitelogo}}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">网站描述</label>
+                            <textarea class="form-control" id="description" name="Description">{{.site.Description}}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="keywords">网站关键词</label>
+                            <input type="text" class="form-control" id="keywords" name="Keywords" value="{{.site.Keywords}}">
+                        </div>
+                        <div class="form-group">
+                            <label for="aboutweb">关于我们</label>
+                            <textarea class="form-control" id="aboutweb" name="Aboutweb">{{.site.Aboutweb}}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="aboutme">关于我</label>
+                            <textarea class="form-control" id="aboutme" name="Aboutme">{{.site.Aboutme}}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="copyright">版权信息</label>
+                            <textarea class="form-control" id="copyright" name="Copyright">{{.site.Copyright}}</textarea>
+
+                        </div>
+                        <button type="submit" class="btn btn-primary">保存设置</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{{end}}
