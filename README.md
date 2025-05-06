@@ -39,7 +39,7 @@
 ----------
 
 
-#方式二：下载源码编译部署（需Go和Mysql环境）
+#方式二：下载源码编译部署（需Go和Mysql环境）推荐方式！
 
 1.下载完整代码[源文件](https://github.com/skyzgh-cn/WebStack-golang/archive/refs/tags/v1.0.0.zip)并修改好config.json中的服务器端口号，mysql相关信息
 
