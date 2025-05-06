@@ -10,7 +10,7 @@ import (
 )
 
 type Admin struct {
-	Id       string `form:"id" json:"id"`
+	Id       int    `form:"id" json:"id"`
 	Username string `form:"username" json:"username"`
 	Password string `form:"password" json:"password"`
 }

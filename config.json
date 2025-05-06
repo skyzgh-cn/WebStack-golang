@@ -8,9 +8,9 @@
     "type": "mysql",
     "host": "47.108.217.150",
     "port": "3306",
-    "user": "webstack",
-    "password": "5201314zgH",
-    "database": "webstack",
+    "user": "ws_test",
+    "password": "ws_test",
+    "database": "ws_test",
     "charset": "utf8mb4",
     "parseTime": true,
     "loc": "Local"

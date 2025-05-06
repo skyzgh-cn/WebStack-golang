@@ -2,19 +2,18 @@ package models
 
 import (
 	"fmt"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
 
 var DB *gorm.DB
-var err error
 
 func init() {
-	config, err := LoadConfig() // 加载配置文件
+	config, err := LoadConfig()
 	if err != nil {
-		fmt.Println("无法加载配置文件:", err) // 如果加载失败，打印错误信息
-		return
+		log.Fatalf("无法加载配置文件: %v", err)
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%t&loc=%s",
@@ -30,39 +29,51 @@ func init() {
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println("数据库连接失败:", err)
-		return
+		log.Fatalf("数据库连接失败: %v", err)
 	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("获取底层 SQL DB 失败: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(50)                  // 最大连接数
+	sqlDB.SetMaxIdleConns(20)                  // 最大空闲连接数
+	sqlDB.SetConnMaxLifetime(30 * time.Minute) // 连接最大生命周期
+
+	fmt.Println("数据库连接成功")
 
 	// 自动迁移数据库表
 	err = DB.AutoMigrate(&Admin{}, &Website{}, &Group{}, &Site{})
 	if err != nil {
-		fmt.Println("数据库迁移失败:", err)
-		return
+		log.Println("数据库迁移失败:", err)
+
 	}
 
-	fmt.Println("数据库连接成功")
+	log.Println("数据库迁移成功")
 
-	// 检查是否存在管理员账号
-	var count int64
-	DB.Model(&Admin{}).Count(&count)
-	if count == 0 {
-		// 创建默认管理员账号
-		admin := Admin{
+	time.Sleep(500 * time.Millisecond) // 延迟500毫秒, 防止远程数据库连接失败
+	// 创建默认管理员（如果没有任何管理员存在）
+	var adminCount int64
+	DB.Model(&Admin{}).Count(&adminCount)
+	if adminCount == 0 {
+		defaultAdmin := Admin{
 			Username: "admin",
-			Password: "21232f297a57a5a743894a0e4a801fc3", // admin的MD5值
+			Password: "21232f297a57a5a743894a0e4a801fc3", // md5("admin")
 		}
-		if err := DB.Create(&admin).Error; err != nil {
-			fmt.Println("创建默认管理员账号失败:", err)
+		if err := DB.Create(&defaultAdmin).Error; err != nil {
+			log.Println("创建默认管理员失败: %v", err)
 		} else {
-			fmt.Println("已创建默认管理员账号: admin/admin")
+			log.Println("已创建默认管理员账号")
 		}
+	} else {
+		log.Println("管理员账号已存在，跳过创建默认管理员")
 	}
 
+	time.Sleep(500 * time.Millisecond) // 延迟500毫秒, 防止远程数据库连接失败
 	//检查是否存在site信息
-	var site Site
-	DB.First(&site)
-	if site.Sitename == "" {
+	var count2 int64
+	DB.Model(&Site{}).Count(&count2)
+	if count2 == 0 {
 		site := Site{
 			Sitename:    "SkyZgh网址导航",
 			Siteurl:     "http://www.skyzgh.com",
@@ -74,9 +85,9 @@ func init() {
 			Copyright:   "<div class=\"footer-text\">&copy; 2025 - 2030<a href=\"about\"><strong>WebStack-golang</strong></a> design by <a href=\"http://www.skyzgh.com\" target=\"_blank\"><strong>SkyZgh</strong></a></div>",
 		}
 		if err := DB.Create(&site).Error; err != nil {
-			fmt.Println("创建默认站点信息失败:", err)
+			log.Println("创建默认站点信息失败:", err)
 		} else {
-			fmt.Println("已创建默认站点信息")
+			log.Println("已创建默认站点信息")
 		}
 	}
 }
