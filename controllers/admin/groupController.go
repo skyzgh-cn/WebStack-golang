@@ -25,7 +25,7 @@ func (gc GroupController) Save(c *gin.Context) {
 
 	ID := c.PostForm("id")
 	var group models.Group
-	if ID == "" {
+	if ID == "0" {
 
 		if err := c.ShouldBind(&group); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
