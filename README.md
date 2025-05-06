@@ -49,7 +49,7 @@
  
 执行编译 `go build -o webstack main.go` 编译生成可执行文件main
 
-3.启动main
+3.启动webstack 
 
 #通用BT面板部署步骤
 
