@@ -47,7 +47,7 @@
 
  执行 `go mod tidy` 拉取项目依赖库
  
-执行编译 `go build -o webstack main.go` 编译生成可执行文件main
+执行编译 `go build -o webstack main.go` 编译生成可执行文件webstack
 
 3.启动webstack 
 
