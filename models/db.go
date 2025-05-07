@@ -51,7 +51,6 @@ func init() {
 
 	log.Println("数据库迁移成功")
 
-	time.Sleep(500 * time.Millisecond) // 延迟500毫秒, 防止远程数据库连接失败
 	// 创建默认管理员（如果没有任何管理员存在）
 	var adminCount int64
 	DB.Model(&Admin{}).Count(&adminCount)
@@ -69,7 +68,6 @@ func init() {
 		log.Println("管理员账号已存在，跳过创建默认管理员")
 	}
 
-	time.Sleep(500 * time.Millisecond) // 延迟500毫秒, 防止远程数据库连接失败
 	//检查是否存在site信息
 	var count2 int64
 	DB.Model(&Site{}).Count(&count2)

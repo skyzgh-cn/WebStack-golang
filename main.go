@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/skyzgh-cn/WebStack-golang/models"
@@ -18,6 +19,10 @@ var templates embed.FS
 //go:embed assets/*
 var assets embed.FS
 
+func formatDate(t time.Time) string {
+	return t.Format("2006-01-02 15:04")
+}
+
 func main() {
 	config, err := models.LoadConfig() // 加载配置文件
 	if err != nil {
@@ -28,9 +33,11 @@ func main() {
 	r := gin.Default() // 创建 Gin 引擎实例
 
 	// 使用 embed 加载模板和静态资源
-	r.SetHTMLTemplate(template.Must(template.ParseFS(templates, "templates/**/*.html"))) // 修改: 支持子目录中的模板文件
-	subFS, _ := fs.Sub(assets, "assets")                                                 //加载静态资源
-	r.StaticFS("/assets", http.FS(subFS))                                                //修改: 支持子目录中的静态资源
+	r.SetHTMLTemplate(template.Must(template.New("").Funcs(template.FuncMap{
+		"formatDate": formatDate,
+	}).ParseFS(templates, "templates/**/*.html"))) // 修改: 支持子目录中的模板文件
+	subFS, _ := fs.Sub(assets, "assets")  //加载静态资源
+	r.StaticFS("/assets", http.FS(subFS)) //修改: 支持子目录中的静态资源
 
 	routers.IndexRoutersInit(r) // 初始前台路由
 	routers.AdminRoutersInit(r) // 初始后台路由
