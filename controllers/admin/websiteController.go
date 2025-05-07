@@ -2,35 +2,86 @@ package admin
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
-	"github.com/skyzgh-cn/WebStack-golang/models"
-	"golang.org/x/net/html/charset"
+	"fmt"
 	"io"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/skyzgh-cn/WebStack-golang/models"
+	"golang.org/x/net/html/charset"
 )
 
 type WebsiteController struct {
 }
 
 func (wc WebsiteController) Index(c *gin.Context) {
+	// 获取分组ID参数
+	groupID := c.Query("group_id")
+	// 获取名称搜索参数
+	searchName := c.Query("name")
+
+	// 分页参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize := 20 // 默认每页20条
+	offset := (page - 1) * pageSize
+
+	// 校验 page 是否为正数
+	if page <= 0 {
+		page = 1
+	}
+
+	// 查询网站数据（带分组筛选和名称搜索）
 	var websites []models.Website
-	models.DB.Preload("Group").Find(&websites)
+	query := models.DB.Preload("Group")
+	if groupID != "" && groupID != "0" {
+		query = query.Where("group_id = ?", groupID)
+	}
+	if searchName != "" {
+		query = query.Where("name LIKE ?", "%"+searchName+"%")
+	}
+	query.Limit(pageSize).Offset(offset).Find(&websites)
+
+	// 查询总记录数（不要带Limit和Offset）
+	var total int64
+	countQuery := models.DB.Model(&models.Website{})
+	if groupID != "" && groupID != "0" {
+		countQuery = countQuery.Where("group_id = ?", groupID)
+	}
+	if searchName != "" {
+		countQuery = countQuery.Where("name LIKE ?", "%"+searchName+"%")
+	}
+	countQuery.Count(&total)
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+	// 校验 totalPages 是否为正数
+	if totalPages <= 0 {
+		totalPages = 1
+	}
+	// 添加调试信息
+	fmt.Printf("分页信息:\n")
+	fmt.Printf("- 当前页码: %d\n", page)
+	fmt.Printf("- 总页数: %d\n", totalPages)
+	// 查询所有分组（用于下拉菜单）
 	var groups []models.Group
 	models.DB.Find(&groups)
-	c.HTML(http.StatusOK, "admin/websites.html", gin.H{
-		"title":    "网站管理",
-		"websites": websites,
-		"groups":   groups,
-	})
 
-	//c.JSON(200, gin.H{
-	//	"websites": websites,
-	//})
+	// 渲染模板
+	c.HTML(http.StatusOK, "admin/websites.html", gin.H{
+		"title":            "网站管理",
+		"websites":         websites,
+		"groups":           groups,
+		"current_group_id": groupID,
+		"search_name":      searchName,
+		"page":             page,
+		"total_pages":      totalPages,
+	})
 }
 
 func (wc WebsiteController) Save(c *gin.Context) {

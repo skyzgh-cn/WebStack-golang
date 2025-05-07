@@ -3,14 +3,13 @@ package main
 import (
 	"embed"
 	"fmt"
-	"html/template"
-	"io/fs"
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/skyzgh-cn/WebStack-golang/models"
 	"github.com/skyzgh-cn/WebStack-golang/routers"
+	"github.com/skyzgh-cn/WebStack-golang/templatefuncs"
+	"html/template"
+	"io/fs"
+	"net/http"
 )
 
 //go:embed templates/**/*
@@ -18,10 +17,6 @@ var templates embed.FS
 
 //go:embed assets/*
 var assets embed.FS
-
-func formatDate(t time.Time) string {
-	return t.Format("2006-01-02 15:04")
-}
 
 func main() {
 	config, err := models.LoadConfig() // 加载配置文件
@@ -34,7 +29,12 @@ func main() {
 
 	// 使用 embed 加载模板和静态资源
 	r.SetHTMLTemplate(template.Must(template.New("").Funcs(template.FuncMap{
-		"formatDate": formatDate,
+		"formatDate": templatefuncs.FormatDate,
+		"max":        templatefuncs.Max,
+		"min":        templatefuncs.Min,
+		"sub":        templatefuncs.Sub,
+		"seq":        templatefuncs.Seq,
+		"add":        templatefuncs.Add,
 	}).ParseFS(templates, "templates/**/*.html"))) // 修改: 支持子目录中的模板文件
 	subFS, _ := fs.Sub(assets, "assets")  //加载静态资源
 	r.StaticFS("/assets", http.FS(subFS)) //修改: 支持子目录中的静态资源
