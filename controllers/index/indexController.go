@@ -24,10 +24,8 @@ func (con IndexController) Index(c *gin.Context) {
 		"aboutweb":  template.HTML(site.Aboutweb),
 		"aboutme":   template.HTML(site.Aboutme),
 		"copyright": template.HTML(site.Copyright),
+		"count":     template.HTML(site.Count),
 	})
-	// c.JSON(200, gin.H{
-	// 	"site": site,
-	// })
 
 }
 
@@ -41,5 +39,6 @@ func (con IndexController) About(c *gin.Context) {
 		"aboutweb":  template.HTML(site.Aboutweb),
 		"aboutme":   template.HTML(site.Aboutme),
 		"copyright": template.HTML(site.Copyright),
+		"count":     template.HTML(site.Count),
 	})
 }

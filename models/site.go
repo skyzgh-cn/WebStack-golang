@@ -10,6 +10,7 @@ type Site struct {
 	Aboutweb    string
 	Aboutme     string
 	Copyright   string
+	Count       string
 }
 
 func (Site) TableName() string {
