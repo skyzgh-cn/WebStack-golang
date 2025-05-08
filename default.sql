@@ -1,4 +1,4 @@
-INSERT INTO `admins` VALUES (1, 'admin', '40ac40a180adbaac52361f2c0e8ddc29');
+INSERT INTO `admins` VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3');
 INSERT INTO `groups` VALUES (1, 'AI模型', 'linecons-search', 0);
 INSERT INTO `groups` VALUES (2, '工具', 'linecons-lock', 1);
 INSERT INTO `groups` VALUES (3, '学习', 'linecons-calendar', 2);
