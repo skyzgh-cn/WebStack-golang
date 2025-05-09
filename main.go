@@ -38,6 +38,7 @@ func main() {
 	}).ParseFS(templates, "templates/**/*.html"))) // 修改: 支持子目录中的模板文件
 	subFS, _ := fs.Sub(assets, "assets")  //加载静态资源
 	r.StaticFS("/assets", http.FS(subFS)) //修改: 支持子目录中的静态资源
+	r.Static("/upload", "./upload")       //加载静态上传资源且不使用embed
 
 	routers.IndexRoutersInit(r) // 初始前台路由
 	routers.AdminRoutersInit(r) // 初始后台路由
