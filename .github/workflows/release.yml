@@ -1,0 +1,98 @@
+
+  :release.yml
+  name: Multi-Platform Release
+
+  on:
+    push:
+      tags:
+        - 'v*'  # 当推送的标签以 'v' 开头时触发
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          os: [ubuntu-latest, windows-latest, macos-latest]
+          include:
+            - os: ubuntu-latest
+              goos: linux
+              goarch: amd64
+              ext: ''
+            - os: ubuntu-latest
+              goos: linux
+              goarch: arm64
+              ext: ''
+            - os: windows-latest
+              goos: windows
+              goarch: amd64
+              ext: '.exe'
+            - os: windows-latest
+              goos: windows
+              goarch: arm64
+              ext: '.exe'
+            - os: macos-latest
+              goos: darwin
+              goarch: amd64
+              ext: ''
+            - os: macos-latest
+              goos: darwin
+              goarch: arm64
+              ext: ''
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Set up Go
+          uses: actions/setup-go@v2
+          with:
+            go-version: '1.24'  # 根据你的项目需求设置Go版本
+
+        - name: Build
+          run: |          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./...
+            mkdir -p dist
+            mv webstack${{ matrix.ext }} dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+
+        - name: Package files
+          run: |          cd dist
+            cp ../config.json .
+            cp ../default.sql .
+            tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
+            rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
+
+        - name: Upload Artifacts
+          uses: actions/upload-artifact@v2
+          with:
+            name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}
+            path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+
+    release:
+      needs: build
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Download Artifacts
+          uses: actions/download-artifact@v2
+          with:
+            path: dist
+
+        - name: Create Release
+          id: create_release
+          uses: actions/create-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            tag_name: ${{ github.ref }}
+            release_name: Release ${{ github.ref }}
+            draft: false
+            prerelease: false
+
+        - name: Upload Release Assets
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+            asset_name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+            asset_content_type: application/gzip
