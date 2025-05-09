@@ -39,29 +39,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # 使用 v3 版本
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4  # 使用 v4 版本
         with:
           go-version: '1.24'  # 根据你的项目需求设置Go版本
 
       - name: Build
-        run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./...
+        run: |          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./...
           mkdir -p dist
           mv webstack${{ matrix.ext }} dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
 
       - name: Package files
-        run: |
-          cd dist
+        run: |          cd dist
           cp ../config.json .
           cp ../default.sql .
           tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
           rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # 使用 v3 版本
         with:
           name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
@@ -72,7 +70,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3  # 使用 v3 版本
         with:
           path: dist
 
