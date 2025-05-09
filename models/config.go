@@ -9,12 +9,13 @@ import (
 // Config 结构体用于存储应用程序配置
 type Config struct {
 	App struct {
-		Name string `json:"name"` // 应用名称
-		Host string `json:"host"` // 应用主机地址
-		Port string `json:"port"` // 应用端口号
+		Name   string `json:"name"`
+		Host   string `json:"host"`
+		Port   string `json:"port"`
+		Dbtype string `json:"dbtype"` // 新增字段
 	} `json:"app"`
-	Db struct { // 数据库配置
-		Type      string `json:"type"`
+	Mysql struct {
+		Type      string `json:"type"` // 可删，实际由dbtype决定
 		Host      string `json:"host"`
 		Port      string `json:"port"`
 		User      string `json:"user"`
@@ -23,7 +24,11 @@ type Config struct {
 		Charset   string `json:"charset"`
 		ParseTime bool   `json:"parseTime"`
 		Loc       string `json:"loc"`
-	} `json:"db"`
+	} `json:"mysql"`
+	Sqlite struct {
+		Type string `json:"type"`
+		File string `json:"file"`
+	} `json:"sqlite"`
 }
 
 // 全局变量，用于存储单例实例
