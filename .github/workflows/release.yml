@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -61,7 +61,7 @@ jobs:
           rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2  # 改回 v2 版本
+        uses: actions/upload-artifact@v4
         with:
           name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
@@ -72,27 +72,17 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2  # 改回 v2 版本
+        uses: actions/download-artifact@v4
         with:
           path: dist
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
+          files: dist/webstack-*/*.tar.gz
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
-          asset_name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
-          asset_content_type: application/gzip
