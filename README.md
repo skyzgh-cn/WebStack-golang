@@ -2,7 +2,7 @@
 ----------
 #简介：
 
-该系统是基于 Golang + mysql的开源网址导航系统
+该系统是基于 Golang + mysql（或sqlite）的开源网址导航系统
 
 使用前端：[WebStackPage](https://github.com/WebStackPage/WebStackPage.github.io)作为前端模板,作者：[viggo](https://www.viggoz.com/)
 
@@ -29,7 +29,7 @@
 
 1.你可以直接从 [Releases ](https://github.com/skyzgh-cn/WebStack-golang/releases)下载预先编译好的二进制文件
 
-2.修改config.json中的服务器端口号，mysql相关信息
+2.修改config.json中的服务器端口号，mysql相关信息，或者直接选择使用sqlite作为数据库
 
 3.上传webstack和config
 
@@ -55,7 +55,7 @@
 
 获取可执行二进制文件后（方式1直接下载，方式2是编译生成），以BT面板为例：
 
-1.确保上传服务器的有webstack、config、default.sql三个文件，且config.json相关配置已经修改正确
+1.确保上传服务器的有webstack、config、default.sql三个文件，且config.json相关配置已经修改正确，首次运行后成功后，default.sql可以删除
 ![image](https://github.com/user-attachments/assets/4422594b-6ce5-4fe0-a493-c7a530765218)
 
 
