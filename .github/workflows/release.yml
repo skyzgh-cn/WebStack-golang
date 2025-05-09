@@ -47,12 +47,14 @@ jobs:
           go-version: '1.24'  # 根据你的项目需求设置Go版本
 
       - name: Build
-        run: |          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./main.go
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./main.go
           mkdir -p dist
           mv webstack${{ matrix.ext }} dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
 
       - name: Package files
-        run: |          cd dist
+        run: |
+          cd dist
           cp ../config.json .
           cp ../default.sql .
           tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
