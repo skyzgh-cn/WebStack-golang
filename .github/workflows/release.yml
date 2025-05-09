@@ -39,12 +39,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # 使用 v3 版本
+        uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v4  # 使用 v4 版本
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.24'  # 根据你的项目需求设置Go版本
+          go-version: '1.21'  # 修改为当前稳定版本
 
       - name: Build
         run: |
@@ -61,7 +61,7 @@ jobs:
           rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3  # 使用 v3 版本
+        uses: actions/upload-artifact@v2  # 改回 v2 版本
         with:
           name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3  # 使用 v3 版本
+        uses: actions/download-artifact@v2  # 改回 v2 版本
         with:
           path: dist
 
