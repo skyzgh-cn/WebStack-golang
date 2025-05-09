@@ -55,8 +55,9 @@
 
 获取可执行二进制文件后（方式1直接下载，方式2是编译生成），以BT面板为例：
 
-1.确保上传服务器的有webstack和config，且config.json相关配置已经修改正确
-![2025-05-06T14:44:23.png][3]
+1.确保上传服务器的有webstack、config、default.sql三个文件，且config.json相关配置已经修改正确
+![image](https://github.com/user-attachments/assets/4422594b-6ce5-4fe0-a493-c7a530765218)
+
 
 2.在Bt面板网站->GO项目->添加GO项目，相关配置如图，找到刚刚上传的文件即可
 ![2025-05-06T14:46:04.png][4]
