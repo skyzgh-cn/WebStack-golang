@@ -10,30 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
-          - os: ubuntu-latest
-            goos: linux
+          # Linux 构建
+          - goos: linux
             goarch: amd64
             ext: ''
-          - os: ubuntu-latest
-            goos: linux
+          - goos: linux
             goarch: arm64
             ext: ''
-          - os: windows-latest
-            goos: windows
+          
+          # Windows 构建
+          - goos: windows
             goarch: amd64
             ext: '.exe'
-          - os: windows-latest
-            goos: windows
+          - goos: windows
             goarch: arm64
             ext: '.exe'
-          - os: macos-latest
-            goos: darwin
+          
+          # macOS 构建
+          - goos: darwin
             goarch: amd64
             ext: ''
-          - os: macos-latest
-            goos: darwin
+          - goos: darwin
             goarch: arm64
             ext: ''
 
