@@ -46,6 +46,7 @@ func (wc WebsiteController) Index(c *gin.Context) {
 	if searchName != "" {
 		query = query.Where("name LIKE ?", "%"+searchName+"%")
 	}
+	query = query.Order("created_at DESC")
 	query.Limit(pageSize).Offset(offset).Find(&websites)
 
 	// 查询总记录数（不要带Limit和Offset）

@@ -25,8 +25,6 @@ func (con AdminController) HandleLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	fmt.Printf("尝试登录: username=%s, password=%s\n", username, password)
-
 	admin := &models.Admin{}
 	if err := admin.Login(username, password); err != nil {
 		fmt.Printf("登录失败: %v\n", err)
@@ -37,8 +35,6 @@ func (con AdminController) HandleLogin(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("登录成功: username=%s\n", admin.Username)
-
 	// 设置session
 	c.SetCookie("admin_id", admin.Username, 3600, "/", "", false, true)
 
@@ -46,6 +42,7 @@ func (con AdminController) HandleLogin(c *gin.Context) {
 		"code": 0,
 		"msg":  "登录成功",
 	})
+
 }
 
 // Dashboard 仪表盘
@@ -61,14 +58,26 @@ func (con AdminController) Dashboard(c *gin.Context) {
 
 	// 获取最近添加的网站
 	var recentWebsites []models.Website
-	models.DB.Order("created_at desc").Limit(5).Find(&recentWebsites)
+	models.DB.Order("created_at desc").Limit(10).Find(&recentWebsites)
+
+	// 获取每个分类下网站数量
+	type GroupStat struct {
+		Name  string
+		Count int
+	}
+	var groupStats []GroupStat
+	models.DB.Table("websites").
+		Select("groups.name as name, count(websites.id) as count").
+		Joins("left join groups on websites.group_id = groups.id").
+		Group("groups.name").
+		Scan(&groupStats)
 
 	c.HTML(200, "admin/dashboard.html", gin.H{
 		"title":          "管理后台",
 		"websiteCount":   websiteCount,
 		"categoryCount":  categoryCount,
-		"todayVisits":    0, // 这里需要实现访问统计功能
 		"recentWebsites": recentWebsites,
+		"groupStats":     groupStats,
 		"systemInfo": gin.H{
 			"OS":          runtime.GOOS,
 			"GoVersion":   runtime.Version(),

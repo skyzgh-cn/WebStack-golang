@@ -8,31 +8,33 @@
             <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#groupModal" onclick="resetForm()">新增分类</button>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover">
-                <thead class="thead-light">
-                <tr>
-                    <th>ID</th>
-                    <th>名称</th>
-                    <th>LOGO</th>
-                    <th>排序</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody id="groupList">
-                {{ range .groups }}
-                <tr>
-                    <td>{{.Id}}</td>
-                    <td><a href="/admin/websites?group_id={{.Id}}">{{.Name}}</a></td>
-                    <td><i class="{{ .Logo }}"></i></td>
-                    <td>{{.Sort}}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#groupModal" onclick='editGroup({{.Id}}, "{{.Name}}", "{{.Logo}}", {{.Sort}})'>编辑</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteGroup({{.Id}})">删除</button>
-                    </td>
-                </tr>
-                {{end}}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>LOGO</th>
+                        <th>排序</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="groupList">
+                    {{ range .groups }}
+                    <tr>
+                        <td>{{.Id}}</td>
+                        <td><a href="/admin/websites?group_id={{.Id}}">{{.Name}}</a></td>
+                        <td><i class="{{ .Logo }}"></i></td>
+                        <td>{{.Sort}}</td>
+                        <td>
+                            <button class="btn btn-outline-warning" data-toggle="modal" data-target="#groupModal" onclick='editGroup({{.Id}}, "{{.Name}}", "{{.Logo}}", {{.Sort}})'>编辑</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteGroup({{.Id}})">删除</button>
+                        </td>
+                    </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </main>

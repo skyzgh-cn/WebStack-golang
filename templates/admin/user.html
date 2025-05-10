@@ -8,27 +8,29 @@
             <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#userModal" onclick="resetForm()">新增用户</button>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover">
-                <thead class="thead-light">
-                <tr>
-                    <th>ID</th>
-                    <th>用户名</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody id="userList">
-                {{ range .users }}
-                <tr>
-                    <td>{{ .Id }}</td>
-                    <td>{{ .Username }}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#userModal" onclick='editUser({{ .Id }}, "{{ .Username }}")'>编辑</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteUser({{ .Id }})">删除</button>
-                    </td>
-                </tr>
-                {{ end }}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userList">
+                    {{ range .users }}
+                    <tr>
+                        <td>{{ .Id }}</td>
+                        <td>{{ .Username }}</td>
+                        <td>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill mb-1" data-toggle="modal" data-target="#userModal" onclick='editUser({{ .Id }}, "{{ .Username }}")'>编辑</button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill mb-1" onclick="deleteUser({{ .Id }})">删除</button>
+                        </td>
+                    </tr>
+                    {{ end }}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </main>

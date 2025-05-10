@@ -3,64 +3,66 @@
 
 <main role="main" class="content">
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>网站管理</h4>
-
-            <!-- 下拉菜单 -->
-            <div class="dropdown">
-                <button class="btn btn-success btn-sm dropdown-toggle" type="button" id="groupFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    筛选分组
-                </button>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="groupFilterDropdown">
-                    <a class="dropdown-item" href="/admin/websites">全部</a>
-                    {{ range .groups }}
-                    <a class="dropdown-item" href="/admin/websites?group_id={{ .Id }}">{{ .Name }}</a>
-                    {{ end }}
+        <div class="card-header bg-white border-0 py-3 d-flex flex-wrap flex-md-nowrap align-items-center gap-2">
+            <div><h4 class="mb-2 mb-md-0 fw-bold webstack-title">网站管理</h4></div>
+            <div class="d-flex flex-wrap flex-md-nowrap align-items-center w-100 gap-2">
+                <div class="dropdown mb-2 mb-md-0">
+                    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="groupFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        筛选分组
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="groupFilterDropdown">
+                        <a class="dropdown-item" href="/admin/websites">全部</a>
+                        {{ range .groups }}
+                        <a class="dropdown-item" href="/admin/websites?group_id={{ .Id }}">{{ .Name }}</a>
+                        {{ end }}
+                    </div>
+                </div>
+                <form class="webstack-search-form d-flex flex-wrap align-items-center mb-2 mb-md-0" method="get" action="/admin/websites">
+                    <input type="hidden" name="group_id" value="{{ .current_group_id }}">
+                    <input type="text" class="form-control form-control-sm rounded-pill me-2" name="name" placeholder="搜索名称" value="{{ .search_name }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm me-2 rounded-pill">搜索</button>
+                    <a href="/admin/websites" class="btn btn-outline-secondary btn-sm rounded-pill">重置</a>
+                </form>
+                <div class="webstack-header-actions">
+                    <button class="btn btn-primary btn-sm rounded-pill" data-toggle="modal" data-target="#websiteModal" onclick="resetForm()">新增网站</button>
                 </div>
             </div>
-
-            <form class="form-inline" method="get" action="/admin/websites" style="margin-right: 10px;">
-                <input type="hidden" name="group_id" value="{{ .current_group_id }}">
-                <input type="text" class="form-control form-control-sm" name="name" placeholder="搜索名称" value="{{ .search_name }}">
-                <button type="submit" class="btn btn-info btn-sm ml-2">搜索</button>
-                <a href="/admin/websites" class="btn btn-secondary btn-sm ml-2">重置</a>
-            </form>
-
-            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#websiteModal" onclick="resetForm()">新增网站</button>
         </div>
 
-        <div class="card-body">
-            <table class="table table-bordered table-hover">
-                <thead class="thead-light">
-                <tr>
-                    <th>ID</th>
-                    <th>名称</th>
-                    <th>分组</th>
-                    <th>URL</th>
-                    <th>Logo</th>
-                    <th>描述</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody id="websiteList">
-                {{ range .websites }}
-                <tr>
-                    <td>{{ .Id }}</td>
-                    <td class="name">{{ .Name }}</td>
-                    <td>{{ .Group.Name }}</td>
-                    <td>{{ .Url }}</td>
-                    <td><img src="{{ .Logo }}" style="width: 32px"/></td>
-                    <td class="description">{{ .Description }}</td>
-                    <td>{{ .CreatedAt | formatDate }}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#websiteModal" onclick='editWebsite({{ .Id }}, "{{ .Name }}", "{{ .GroupId }}", "{{ .Url }}", "{{ .Logo }}", "{{ .Description }}")'>编辑</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteWebsite({{ .Id }})">删除</button>
-                    </td>
-                </tr>
-                {{ end }}
-                </tbody>
-            </table>
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>分组</th>
+                        <th>URL</th>
+                        <th>Logo</th>
+                        <th>描述</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="websiteList">
+                    {{ range .websites }}
+                    <tr>
+                        <td>{{ .Id }}</td>
+                        <td class="name" title="{{ .Name }}">{{ .Name }}</td>
+                        <td>{{ .Group.Name }}</td>
+                        <td title="{{ .Url }}">{{ .Url }}</td>
+                        <td><img src="{{ .Logo }}" style="width: 32px; border-radius: 8px;"/></td>
+                        <td class="description" title="{{ .Description }}">{{ .Description }}</td>
+                        <td>{{ .CreatedAt | formatDate }}</td>
+                        <td>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill mb-1" data-toggle="modal" data-target="#websiteModal" onclick='editWebsite({{ .Id }}, "{{ .Name }}", "{{ .GroupId }}", "{{ .Url }}", "{{ .Logo }}", "{{ .Description }}")'>编辑</button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill mb-1" onclick="deleteWebsite({{ .Id }})">删除</button>
+                        </td>
+                    </tr>
+                    {{ end }}
+                    </tbody>
+                </table>
+            </div>
 
             <!-- 分页控件 -->
             <nav aria-label="Page navigation">
