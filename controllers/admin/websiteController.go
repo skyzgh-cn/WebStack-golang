@@ -190,30 +190,42 @@ func (wc WebsiteController) FetchMeta(c *gin.Context) {
 		desc = extractRegex(html, `property="og:description"\s+content="(.*?)"`, false)
 	}
 
-	// 提取 favicon
-	const faviconPattern = `(?i)<link\b[^>]*?\b(?:rel\s*=\s*["'](?:shortcut\s+)?icon["'])[^>]*?href\s*=\s*["'](.*?)["'][^>]*?>`
-	favicon := extractRegex(html, faviconPattern, false)
-
-	var faviconURL string // ✅ 在外层声明，避免 undefined 报错
-
-	if favicon != "" {
-		if strings.HasPrefix(favicon, "//") {
-			favicon = "https:" + favicon
+	// 新增：尝试直接抓取 favicon.ico 或 favicon.png
+	var faviconURL string
+	faviconPaths := []string{"/favicon.ico", "/favicon.png"} // 默认的 favicon 路径
+	for _, path := range faviconPaths {
+		faviconURL = parsedURL.Scheme + "://" + parsedURL.Host + path // 拼接到完整 URL
+		resp, err := client.Get(faviconURL)                           // 尝试抓取
+		if err == nil && resp.StatusCode == 200 {                     // 如果抓取成功
+			break // 使用当前 faviconURL
 		}
+		faviconURL = "" // 如果抓取失败，清空 faviconURL
+	}
 
-		// 判断是否是完整 URL
-		parsedFavicon, err := url.Parse(favicon)
-		if err == nil && (parsedFavicon.Scheme == "http" || parsedFavicon.Scheme == "https") {
-			// 如果是完整 URL，直接使用
-			faviconURL = favicon
+	// 如果直接抓取失败，进入现有的 favicon 提取逻辑
+	if faviconURL == "" {
+		const faviconPattern = `(?i)<link\b[^>]*?\b(?:rel\s*=\s*["'](?:shortcut\s+)?icon["'])[^>]*?href\s*=\s*["'](.*?)["'][^>]*?>`
+		favicon := extractRegex(html, faviconPattern, false)
+
+		if favicon != "" {
+			if strings.HasPrefix(favicon, "//") {
+				favicon = "https:" + favicon
+			}
+
+			// 判断是否是完整 URL
+			parsedFavicon, err := url.Parse(favicon)
+			if err == nil && (parsedFavicon.Scheme == "http" || parsedFavicon.Scheme == "https") {
+				// 如果是完整 URL，直接使用
+				faviconURL = favicon
+			} else {
+				// 否则拼接基础 URL
+				base, _ := url.Parse(req.URL)
+				faviconURL = base.ResolveReference(&url.URL{Path: favicon}).String()
+			}
 		} else {
-			// 否则拼接基础 URL
-			base, _ := url.Parse(req.URL)
-			faviconURL = base.ResolveReference(&url.URL{Path: favicon}).String()
+			// 如果仍然没有找到 favicon，使用默认的 favicon
+			faviconURL = "/assets/images/default.png"
 		}
-	} else {
-		// ✅ 在 else 分支中也赋值
-		faviconURL = "/assets/images/default.png"
 	}
 
 	// ✅ 最终返回 JSON
