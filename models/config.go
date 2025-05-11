@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"sync"
@@ -35,55 +37,83 @@ type Config struct {
 var (
 	configInstance *Config
 	loadOnce       sync.Once
+	jsonConfig     *Config // 存储从config.json读取的配置
 )
 
-// getEnv 获取环境变量，如果不存在则返回默认值
-func getEnv(key, defaultValue string) string {
+// 从config.json文件加载配置
+func loadConfigFromFile(filePath string) (*Config, error) {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var config Config
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
+// getEnv 获取环境变量，如果不存在则返回config.json中的值，如果config.json也不存在则返回默认值
+func getEnv(key string, jsonValue string, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
+		if jsonValue != "" {
+			return jsonValue
+		}
 		return defaultValue
 	}
 	return value
 }
 
 // getEnvBool 获取布尔类型的环境变量
-func getEnvBool(key string, defaultValue bool) bool {
+func getEnvBool(key string, jsonValue bool, defaultValue bool) bool {
 	value := os.Getenv(key)
 	if value == "" {
-		return defaultValue
+		return jsonValue
 	}
 	boolValue, err := strconv.ParseBool(value)
 	if err != nil {
-		return defaultValue
+		return jsonValue
 	}
 	return boolValue
 }
 
-// LoadConfig 函数从环境变量加载配置
+// LoadConfig 函数从环境变量和config.json加载配置
 func LoadConfig() (*Config, error) {
 	loadOnce.Do(func() {
+		// 尝试从config.json加载配置
+		fileConfig, err := loadConfigFromFile("config.json")
+		if err != nil {
+			// 如果加载失败，使用空配置
+			fileConfig = &Config{}
+		}
+		jsonConfig = fileConfig
+
 		config := &Config{}
 
 		// 加载App配置
-		config.App.Name = getEnv("APP_NAME", "WebStack")
-		config.App.Host = getEnv("APP_HOST", "0.0.0.0")
-		config.App.Port = getEnv("APP_PORT", "8080")
-		config.App.Dbtype = getEnv("DB_TYPE", "sqlite")
+		config.App.Name = getEnv("APP_NAME", jsonConfig.App.Name, "WebStack")
+		config.App.Host = getEnv("APP_HOST", jsonConfig.App.Host, "0.0.0.0")
+		config.App.Port = getEnv("APP_PORT", jsonConfig.App.Port, "8080")
+		config.App.Dbtype = getEnv("DB_TYPE", jsonConfig.App.Dbtype, "sqlite")
 
 		// 加载MySQL配置
 		config.Mysql.Type = "mysql"
-		config.Mysql.Host = getEnv("MYSQL_HOST", "127.0.0.1")
-		config.Mysql.Port = getEnv("MYSQL_PORT", "3306")
-		config.Mysql.User = getEnv("MYSQL_USER", "webstack")
-		config.Mysql.Password = getEnv("MYSQL_PASSWORD", "webstack")
-		config.Mysql.Database = getEnv("MYSQL_DATABASE", "webstack")
-		config.Mysql.Charset = getEnv("MYSQL_CHARSET", "utf8mb4")
-		config.Mysql.ParseTime = getEnvBool("MYSQL_PARSE_TIME", true)
-		config.Mysql.Loc = getEnv("MYSQL_LOC", "Local")
+		config.Mysql.Host = getEnv("MYSQL_HOST", jsonConfig.Mysql.Host, "127.0.0.1")
+		config.Mysql.Port = getEnv("MYSQL_PORT", jsonConfig.Mysql.Port, "3306")
+		config.Mysql.User = getEnv("MYSQL_USER", jsonConfig.Mysql.User, "webstack")
+		config.Mysql.Password = getEnv("MYSQL_PASSWORD", jsonConfig.Mysql.Password, "webstack")
+		config.Mysql.Database = getEnv("MYSQL_DATABASE", jsonConfig.Mysql.Database, "webstack")
+		config.Mysql.Charset = getEnv("MYSQL_CHARSET", jsonConfig.Mysql.Charset, "utf8mb4")
+		config.Mysql.ParseTime = getEnvBool("MYSQL_PARSE_TIME", jsonConfig.Mysql.ParseTime, true)
+		config.Mysql.Loc = getEnv("MYSQL_LOC", jsonConfig.Mysql.Loc, "Local")
 
 		// 加载SQLite配置
 		config.Sqlite.Type = "sqlite"
-		config.Sqlite.File = getEnv("SQLITE_FILE", "./webstack.db")
+		config.Sqlite.File = getEnv("SQLITE_FILE", jsonConfig.Sqlite.File, "./webstack.db")
 
 		configInstance = config
 	})
