@@ -9,8 +9,7 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
-      - ./data/db:/app/db
-      - ./data/upload:/app/upload
+       - ./data/upload:/app/upload
     env_file:
       - .env
     networks:

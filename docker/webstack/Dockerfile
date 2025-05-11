@@ -27,6 +27,7 @@ WORKDIR /app
 # 从构建阶段复制二进制文件和所需资源
 COPY --from=builder /build/webstack /app/
 COPY --from=builder /build/default.sql /app/
+COPY --from=builder /build/config.json /app/
 
 
 # 设置时区

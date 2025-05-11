@@ -18,6 +18,6 @@
   },
   "sqlite": {
     "type": "sqlite",
-    "file": "./docker/webstack/data/db/webstack.db"
+    "file": "./webstack.db"
   }
 }
