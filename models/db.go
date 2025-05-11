@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -36,6 +37,11 @@ func init() {
 			SkipDefaultTransaction: true,
 		})
 	case "sqlite":
+		// 确保目录存在
+		dir := filepath.Dir(config.Sqlite.File)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Println("无法创建目录 %s: %v", dir, err)
+		}
 		DB, err = gorm.Open(sqlite.Open(config.Sqlite.File+"?cache=shared&_sync=OFF"), &gorm.Config{
 			SkipDefaultTransaction: true,
 			DisableAutomaticPing:   true,
