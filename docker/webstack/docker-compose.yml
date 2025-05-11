@@ -3,7 +3,7 @@ services:
     build:
       context: ../../
       dockerfile: docker/webstack/Dockerfile  
-    image: webstack:latest
+    image: skyzgh/webstack:latest
     container_name: webstack
     restart: unless-stopped
     ports:
