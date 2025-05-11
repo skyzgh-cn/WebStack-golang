@@ -18,6 +18,6 @@
   },
   "sqlite": {
     "type": "sqlite",
-    "file": "./webstack.db"
+    "file": "./db/webstack.db"
   }
 }
