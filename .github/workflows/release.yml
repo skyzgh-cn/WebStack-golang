@@ -53,10 +53,9 @@ jobs:
       - name: Package files
         run: |
           cd dist
-          cp ../config.json .
           cp ../default.sql .
-          tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
-          rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
+          tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} default.sql
+          rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} default.sql
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
