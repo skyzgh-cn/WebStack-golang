@@ -27,8 +27,7 @@ WORKDIR /app
 # 从构建阶段复制二进制文件和所需资源
 COPY --from=builder /build/webstack /app/
 COPY --from=builder /build/default.sql /app/
-COPY --from=builder /build/assets /app/assets
-COPY --from=builder /build/templates /app/templates
+
 
 # 设置时区
 ENV TZ=Asia/Shanghai
