@@ -12,7 +12,7 @@ services:
        - ./data/upload:/app/upload
        - ./data/db:/app/db
     environment:
-      - APP_PORT=8080
+      - GIN_MODE=release
     networks:
       - webstack_net
 
