@@ -3,13 +3,14 @@ package main
 import (
 	"embed"
 	"fmt"
+	"html/template"
+	"io/fs"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/skyzgh-cn/WebStack-golang/models"
 	"github.com/skyzgh-cn/WebStack-golang/routers"
 	"github.com/skyzgh-cn/WebStack-golang/templatefuncs"
-	"html/template"
-	"io/fs"
-	"net/http"
 )
 
 //go:embed templates/**/*
@@ -42,6 +43,11 @@ func main() {
 
 	routers.IndexRoutersInit(r) // 初始前台路由
 	routers.AdminRoutersInit(r) // 初始后台路由
+	r.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "index/404.html", gin.H{
+			"title": "页面未找到",
+		})
+	})
 
 	addr := fmt.Sprintf("%s:%s", config.App.Host, config.App.Port) // 构建服务地址
 
