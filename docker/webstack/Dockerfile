@@ -17,8 +17,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o webstack main.go
 # 使用更小的镜像作为运行环境
 FROM alpine:latest
 
-# 安装必要依赖
-RUN apk --no-cache add ca-certificates tzdata && \
+# 更换为阿里云源并安装依赖
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk --no-cache add ca-certificates tzdata && \
     mkdir -p /app/upload
 
 # 设置工作目录

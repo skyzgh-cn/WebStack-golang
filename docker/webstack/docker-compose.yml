@@ -3,7 +3,7 @@ services:
     build:
       context: ../../
       dockerfile: docker/webstack/Dockerfile  
-    image: skyzgh/webstack-go:latest
+    image: skyzgh/webstack:latest
     container_name: webstack
     restart: unless-stopped
     ports:
@@ -13,6 +13,7 @@ services:
        - ./data/db:/app/db
     environment:
       - GIN_MODE=release
+      - COMPOSE_BAKE=true
     networks:
       - webstack_net
 
