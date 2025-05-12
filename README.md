@@ -41,7 +41,7 @@
 
 #方式二：下载源码编译部署（需运行环境）
 
-1.下载完整代码[源文件](https://github.com/skyzgh-cn/WebStack-golang/archive/refs/tags/v1.0.0.zip)并修改好config.json中的服务器端口号，数据库相关信息
+1.下载完整代码[源文件](https://github.com/skyzgh-cn/WebStack-golang/archive/refs/heads/master.zip)并修改好config.json中的服务器端口号，数据库相关信息
 
 2.上传服务器，在上传目录下
 
