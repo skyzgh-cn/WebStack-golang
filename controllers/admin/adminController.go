@@ -67,9 +67,9 @@ func (con AdminController) Dashboard(c *gin.Context) {
 	}
 	var groupStats []GroupStat
 	models.DB.Table("websites").
-		Select("groups.name as name, count(websites.id) as count").
-		Joins("left join groups on websites.group_id = groups.id").
-		Group("groups.name").
+		Select("`groups`.`name` as name, COUNT(websites.id) as count").
+		Joins("RIGHT JOIN `groups` ON websites.group_id = `groups`.`id`").
+		Group("`groups`.`name`").
 		Scan(&groupStats)
 
 	c.HTML(200, "admin/dashboard.html", gin.H{
