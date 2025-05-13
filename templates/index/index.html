@@ -45,7 +45,7 @@
                             <img src="{{.site.Sitelogo}}" width="100%" alt="" />
                         </a>
                         <a href="/" class="logo-collapsed">
-                            <img src="{{.site.Sitelogo}}" width="40" alt="" />
+                            <img src="/assets/images/logo-collapsed@2x.png" width="40" alt="" />
                         </a>
                     </div>
                     <div class="mobile-menu-toggle visible-xs">
@@ -147,7 +147,7 @@
                     <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('{{.Url}}', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="{{.Url}}">
                         <div class="xe-comment-entry">
                             <a class="xe-user-img">
-                                <img data-src="{{.Logo}}" class="lozad img-circle" width="40">
+                                <img data-src="{{.Logo}}" class="lozad img-circle" width="40" onerror="this.src='/assets/images/default.png'" alt="logo">
                             </a>
                             <div class="xe-comment">
                                 <a href="#" class="xe-user-name overflowClip_1">

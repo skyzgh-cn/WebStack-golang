@@ -1,0 +1,172 @@
+{{ define "index/404.html" }}
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>404 - 页面未找到 | SkyZgh.com</title>
+<link rel="shortcut icon" href="https://www.skyzgh.com/favicon.ico" type="image/x-icon">
+<style>
+    :root {
+        --primary-color: #3498db;
+        --secondary-color: #2c3e50;
+        --accent-color: #e74c3c;
+        --text-color: #333;
+        --light-text: #777;
+        --background: #f8f9fa;
+    }
+    body {
+        background-color: var(--background);
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: var(--text-color);
+    }
+    .container {
+        text-align: center;
+        padding: 20px;
+        max-width: 600px;
+    }
+    .logo {
+        margin-bottom: 20px;
+    }
+    .logo img {
+        max-width: 150px;
+        height: auto;
+    }
+    .error-code {
+        font-size: 120px;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin: 0;
+        animation: pulse 1.5s infinite alternate;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .error-message {
+        font-size: 24px;
+        margin: 20px 0;
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+    .error-description {
+        font-size: 16px;
+        margin-bottom: 30px;
+        color: var(--light-text);
+        line-height: 1.6;
+    }
+    .home-button {
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .home-button:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        color: var(--accent-color);
+    }
+    .footer {
+        margin-top: 40px;
+        font-size: 14px;
+        color: var(--light-text);
+    }
+    @keyframes pulse {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+    .stars {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+    }
+    .star {
+        position: absolute;
+        background-color: #fff;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: twinkle 2s infinite alternate;
+    }
+    @keyframes twinkle {
+        from { opacity: 0.3; }
+        to { opacity: 1; }
+    }
+</style>
+</head>
+
+<body>
+<div class="stars" id="stars"></div>
+<div class="container">
+    <div class="logo">
+        <!-- 可以替换为您网站的实际logo -->
+        <h1 style="color: var(--primary-color); font-size: 32px; margin: 0;">SkyZgh</h1>
+    </div>
+    <div class="icon">🚀</div>
+    <h1 class="error-code">404</h1>
+    <h2 class="error-message">页面未找到</h2>
+    <p class="error-description">抱歉，您访问的页面不存在或已被移动。请返回主页或尝试其他页面。</p>
+    <a href="/" class="home-button">返回主页</a>
+    <div class="footer">
+        &copy; 2023 SkyZgh.com 版权所有
+    </div>
+</div>
+
+<script>
+    // 创建星空背景
+    function createStars() {
+        const starsContainer = document.getElementById('stars');
+        const starsCount = 100;
+        
+        for (let i = 0; i < starsCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            // 随机位置
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            
+            // 随机大小
+            const size = Math.random() * 3;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            
+            // 随机动画延迟
+            star.style.animationDelay = `${Math.random() * 2}s`;
+            
+            starsContainer.appendChild(star);
+        }
+    }
+    
+    // 页面加载完成后创建星星
+    window.onload = createStars;
+</script>
+</body>
+</html>
+
+{{ end }}
