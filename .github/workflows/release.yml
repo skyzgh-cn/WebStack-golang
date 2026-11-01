@@ -15,25 +15,31 @@ jobs:
           - goos: linux
             goarch: amd64
             ext: ''
+            archive: tar.gz
           - goos: linux
             goarch: arm64
             ext: ''
-          
+            archive: tar.gz
+
           # Windows 构建
           - goos: windows
             goarch: amd64
             ext: '.exe'
+            archive: zip
           - goos: windows
             goarch: arm64
             ext: '.exe'
-          
+            archive: zip
+
           # macOS 构建
           - goos: darwin
             goarch: amd64
             ext: ''
+            archive: tar.gz
           - goos: darwin
             goarch: arm64
             ext: ''
+            archive: tar.gz
 
     steps:
       - name: Checkout code
@@ -52,27 +58,36 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o webstack${{ matrix.ext }} ./main.go
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -trimpath -ldflags="-s -w" -o "webstack${{ matrix.ext }}" ./main.go
           mkdir -p dist
-          mv webstack${{ matrix.ext }} dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          mv "webstack${{ matrix.ext }}" "dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
 
       - name: Package files
         run: |
           cd dist
           cp ../config.json .
           cp ../default.sql .
-          tar -czvf webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
-          rm webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} config.json default.sql
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip "webstack-${{ matrix.goos }}-${{ matrix.goarch }}.zip" \
+              "webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" config.json default.sql
+          else
+            tar -czf "webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz" \
+              "webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" config.json default.sql
+          fi
+          rm "webstack-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" config.json default.sql
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: webstack-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          path: dist/webstack-${{ matrix.goos }}-${{ matrix.goarch }}.*
 
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Download Artifacts
@@ -83,9 +98,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/webstack-*/*.tar.gz
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
+          files: |
+            dist/webstack-*/*.tar.gz
+            dist/webstack-*/*.zip
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
         env:
