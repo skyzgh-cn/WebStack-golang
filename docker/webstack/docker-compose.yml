@@ -14,6 +14,13 @@ services:
     environment:
       - GIN_MODE=release
       - COMPOSE_BAKE=true
+      # 站点启用 HTTPS 后请将 secureCookie 设为 true
+      # - WEBSTACK_SECURE_COOKIE=true
+      # 部署在反向代理之后时，在此列出可信代理的 IP/CIDR
+      # - WEBSTACK_TRUSTED_PROXIES=172.17.0.1
+      # 使用 MySQL 时，通过环境变量传入密码，避免写入版本库
+      # - WEBSTACK_DB_TYPE=mysql
+      # - WEBSTACK_MYSQL_PASSWORD=your_password
     networks:
       - webstack_net
 

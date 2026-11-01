@@ -48,6 +48,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="userId" name="id" value="0">
+                    <input type="hidden" name="_csrf" value="{{.csrfToken}}">
                     <div class="form-group">
                         <label for="username">用户名</label>
                         <input type="text" class="form-control" id="username" name="username" required>
@@ -66,7 +67,6 @@
     </div>
 </div>
 
-<script src="/assets/admin/jquery-3.6.4.min.js"></script>
 <script src="/assets/admin/bootstrap-4.6.2.min.js"></script>
 <script>
     function editUser(id, username) {

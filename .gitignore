@@ -1,0 +1,19 @@
+# 运行时生成的数据库与上传目录
+/db/
+/upload/
+*.db
+*.db-shm
+*.db-wal
+
+# 编译产物
+/webstack
+/webstack.exe
+/dist/
+
+# 本地配置（可能包含数据库密码等敏感信息）
+/config.local.json
+
+# IDE 配置
+/.idea/
+/.vscode/
+*.iml

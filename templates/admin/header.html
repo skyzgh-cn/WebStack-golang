@@ -7,6 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.title}} - WebStack管理系统</title>
+    <!-- CSRF 令牌：AJAX 请求通过请求头携带，普通表单通过隐藏域携带 -->
+    <meta name="csrf-token" content="{{.csrfToken}}">
     <!-- Bootstrap CSS -->
     <link href="/assets/admin/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -15,7 +17,7 @@
     <link href="/assets/css/admin.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/fonts/linecons/css/linecons.css">
     <!-- jQuery -->
-    <script src="/assets/admin/jquery.min.js"></script>
+    <script src="/assets/admin/jquery-3.6.4.min.js"></script>
     <!-- 自定义JS -->
     <script src="/assets/js/admin.js"></script>
 </head>

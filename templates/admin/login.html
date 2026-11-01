@@ -44,6 +44,7 @@
     <div class="login-box">
         <h2 class="login-title">WebStack管理系统</h2>
         <form id="loginForm" method="POST" action="/admin/login" autocomplete="off">
+            <input type="hidden" name="_csrf" value="{{.csrfToken}}">
             <div class="mb-3">
                 <label for="username" class="form-label">用户名</label>
                 <input type="text" class="form-control" id="username" name="username" required autocomplete="off">

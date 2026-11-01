@@ -3,14 +3,16 @@
     "name": "WebStack",
     "host": "0.0.0.0",
     "port": "8080",
-    "dbtype": "sqlite"
+    "dbtype": "sqlite",
+    "secureCookie": false,
+    "trustedProxies": []
   },
   "mysql": {
     "type": "mysql",
     "host": "127.0.0.1",
     "port": "3306",
     "user": "webstack",
-    "password": "webstack",
+    "password": "",
     "database": "webstack",
     "charset": "utf8mb4",
     "parseTime": true,

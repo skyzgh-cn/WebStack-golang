@@ -66,6 +66,29 @@
 
 3.正常情况就部署成功了、后台地址:你的地址/admin 默认管理员账户和密码均为admin
 
+#安全配置
+
+**首次部署后请立即修改默认管理员密码**（后台 → 用户管理）。
+
+生产环境建议通过环境变量覆盖敏感配置，避免写入版本库：
+
+| 环境变量 | 说明 | 示例 |
+| --- | --- | --- |
+| `WEBSTACK_CONFIG` | 指定 config.json 的绝对路径 | `/opt/webstack/config.json` |
+| `WEBSTACK_MYSQL_PASSWORD` | MySQL 密码 | `s3cret` |
+| `WEBSTACK_MYSQL_USER` / `WEBSTACK_MYSQL_HOST` / `WEBSTACK_MYSQL_PORT` / `WEBSTACK_MYSQL_DATABASE` | MySQL 连接信息 | |
+| `WEBSTACK_DB_TYPE` | 数据库类型（`sqlite` / `mysql`） | `mysql` |
+| `WEBSTACK_SQLITE_FILE` | SQLite 数据库文件路径 | `./db/webstack.db` |
+| `WEBSTACK_SECURE_COOKIE` | 站点启用 HTTPS 时置为 `true` | `true` |
+| `WEBSTACK_TRUSTED_PROXIES` | 可信反向代理 IP/CIDR，多个用逗号分隔 | `127.0.0.1` |
+| `WEBSTACK_HOST` / `WEBSTACK_PORT` | 监听地址与端口 | `0.0.0.0` |
+
+说明：
+
+- `trustedProxies` 留空表示不信任任何代理，此时 `X-Forwarded-*` 头一律被忽略。若站点部署在 Nginx 等反向代理之后，请把代理的 IP 填入该列表，否则客户端 IP 会被识别为代理地址（影响登录限流）。
+- `secureCookie` 为 `true` 时会话 Cookie 仅通过 HTTPS 传输，站点启用 HTTPS 后应开启。
+- 站内"抓取网页信息"功能已内置 SSRF 防护，禁止访问内网地址与非 80/443 端口。
+
 #方式三：Docker部署
 
 docker-compose方式部署（docker hub：skyzgh/webstack:latest）

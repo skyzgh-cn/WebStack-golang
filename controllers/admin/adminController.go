@@ -1,22 +1,47 @@
 package admin
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
 	"net/http"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
+	"github.com/skyzgh-cn/WebStack-golang/auth"
+	"github.com/skyzgh-cn/WebStack-golang/middleware"
 	"github.com/skyzgh-cn/WebStack-golang/models"
 )
 
 type AdminController struct{}
 
+// isSecureRequest 判断当前请求是否经由 HTTPS，用于决定 Cookie 的 Secure 标记。
+//
+// 若配置中显式启用了 secureCookie，则始终视为安全连接；
+// 否则依据 TLS 与反向代理头判断。由于 Gin 只信任配置中列出的代理，
+// 客户端无法通过伪造 X-Forwarded-Proto 头影响该判断。
+func isSecureRequest(c *gin.Context) bool {
+	if config, err := models.LoadConfig(); err == nil && config.App.SecureCookie {
+		return true
+	}
+	if c.Request.TLS != nil {
+		return true
+	}
+	return c.GetHeader("X-Forwarded-Proto") == "https"
+}
+
 // Login 登录页面
 func (con AdminController) Login(c *gin.Context) {
+	// 签发登录 CSRF 令牌（双提交 Cookie 模式）
+	csrfToken, err := auth.IssueLoginCSRF(c.Writer, isSecureRequest(c))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 1,
+			"msg":  "生成令牌失败",
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "admin/login.html", gin.H{
-		"title": "管理员登录",
+		"title":     "管理员登录",
+		"csrfToken": csrfToken,
 	})
 }
 
@@ -25,9 +50,28 @@ func (con AdminController) HandleLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
+	// 校验登录 CSRF 令牌，阻断跨站登录请求伪造
+	if !auth.VerifyLoginCSRF(c.Request, c.PostForm(auth.LoginCSRFField)) {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 1,
+			"msg":  "CSRF 校验失败，请刷新页面后重试",
+		})
+		return
+	}
+
+	// 限制登录失败次数，防止暴力破解
+	clientIP := c.ClientIP()
+	if !auth.AllowLogin(clientIP, username) {
+		c.JSON(http.StatusTooManyRequests, gin.H{
+			"code": 1,
+			"msg":  "登录尝试过于频繁，请稍后再试",
+		})
+		return
+	}
+
 	admin := &models.Admin{}
 	if err := admin.Login(username, password); err != nil {
-		fmt.Printf("登录失败: %v\n", err)
+		auth.RecordLoginFailure(clientIP, username)
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
 			"msg":  err.Error(),
@@ -35,8 +79,19 @@ func (con AdminController) HandleLogin(c *gin.Context) {
 		return
 	}
 
-	// 设置session
-	c.SetCookie("admin_id", admin.Username, 3600, "/", "", false, true)
+	auth.ResetLoginFailures(clientIP, username)
+
+	// 创建服务端会话，Cookie 中仅保存随机会话令牌
+	token, _, err := auth.Default().Create(admin.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 1,
+			"msg":  "创建会话失败",
+		})
+		return
+	}
+
+	auth.SetSessionCookie(c.Writer, token, isSecureRequest(c))
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
@@ -78,6 +133,7 @@ func (con AdminController) Dashboard(c *gin.Context) {
 		"categoryCount":  categoryCount,
 		"recentWebsites": recentWebsites,
 		"groupStats":     groupStats,
+		"csrfToken":      middleware.CSRFToken(c),
 		"systemInfo": gin.H{
 			"OS":          runtime.GOOS,
 			"GoVersion":   runtime.Version(),
@@ -89,7 +145,10 @@ func (con AdminController) Dashboard(c *gin.Context) {
 
 // Logout 退出登录
 func (con AdminController) Logout(c *gin.Context) {
-	c.SetCookie("admin_id", "", -1, "/", "", false, true)
+	if cookie, err := c.Request.Cookie(auth.CookieName); err == nil {
+		auth.Default().Delete(cookie.Value)
+	}
+	auth.ClearSessionCookie(c.Writer, isSecureRequest(c))
 	c.Redirect(http.StatusFound, "/admin/login")
 }
 
@@ -101,8 +160,9 @@ func (con AdminController) User(c *gin.Context) {
 	models.DB.Find(&users)
 
 	c.HTML(http.StatusOK, "admin/user.html", gin.H{
-		"title": "用户管理",
-		"users": users,
+		"title":     "用户管理",
+		"users":     users,
+		"csrfToken": middleware.CSRFToken(c),
 	})
 	//c.JSON(200, gin.H{"users": users})
 
@@ -119,11 +179,14 @@ func (con AdminController) Save(c *gin.Context) {
 		return
 	}
 
-	// 如果是新增用户，或设置了新密码，则进行MD5加密
+	// 如果是新增用户，或设置了新密码，则使用 bcrypt 加密
 	if ID == "0" || user.Password != "" {
-		h := md5.New()
-		h.Write([]byte(user.Password))
-		user.Password = hex.EncodeToString(h.Sum(nil))
+		hashed, err := models.HashPassword(user.Password)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "密码加密失败"})
+			return
+		}
+		user.Password = hashed
 	}
 
 	if ID == "0" {
@@ -132,7 +195,10 @@ func (con AdminController) Save(c *gin.Context) {
 	} else {
 		// 更新用户（仅更新用户名和密码）
 		var existingUser models.Admin
-		models.DB.First(&existingUser, ID)
+		if err := models.DB.First(&existingUser, ID).Error; err != nil {
+			c.JSON(404, gin.H{"error": "用户不存在"})
+			return
+		}
 		existingUser.Username = user.Username
 		if user.Password != "" {
 			existingUser.Password = user.Password

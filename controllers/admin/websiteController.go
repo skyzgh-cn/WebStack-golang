@@ -2,10 +2,10 @@ package admin
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"math"
-	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/skyzgh-cn/WebStack-golang/middleware"
 	"github.com/skyzgh-cn/WebStack-golang/models"
 	"golang.org/x/net/html/charset"
 )
@@ -30,12 +31,12 @@ func (wc WebsiteController) Index(c *gin.Context) {
 	// 分页参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize := 20 // 默认每页20条
-	offset := (page - 1) * pageSize
 
-	// 校验 page 是否为正数
+	// 校验 page 是否为正数（须在计算 offset 之前校正，避免负数偏移）
 	if page <= 0 {
 		page = 1
 	}
+	offset := (page - 1) * pageSize
 
 	// 查询网站数据（带分组筛选和名称搜索）
 	var websites []models.Website
@@ -82,6 +83,7 @@ func (wc WebsiteController) Index(c *gin.Context) {
 		"search_name":      searchName,
 		"page":             page,
 		"total_pages":      totalPages,
+		"csrfToken":        middleware.CSRFToken(c),
 	})
 }
 
@@ -89,29 +91,31 @@ func (wc WebsiteController) Save(c *gin.Context) {
 
 	ID := c.PostForm("id")
 	var website models.Website
+	if err := c.ShouldBind(&website); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if website.Logo == "" {
+		website.Logo = "/assets/images/default.png"
+	}
+
 	if ID == "0" {
-
-		if err := c.ShouldBind(&website); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-		if website.Logo == "" {
-			website.Logo = "/assets/images/default.png"
-		}
+		// 新增网站：由数据库生成自增主键与创建时间
+		website.Id = 0
 		models.DB.Create(&website)
-
 	} else {
-
-		if err := c.ShouldBind(&website); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+		// 更新网站：保留原有创建时间，避免编辑操作刷新"添加时间"
+		var existingWebsite models.Website
+		if err := models.DB.First(&existingWebsite, ID).Error; err != nil {
+			c.JSON(404, gin.H{"error": "网站不存在"})
 			return
 		}
-		if website.Logo == "" {
-			website.Logo = "/assets/images/default.png"
-		}
-		website.CreatedAt = time.Now()
-		models.DB.Save(&website)
-
+		existingWebsite.Name = website.Name
+		existingWebsite.GroupId = website.GroupId
+		existingWebsite.Url = website.Url
+		existingWebsite.Logo = website.Logo
+		existingWebsite.Description = website.Description
+		models.DB.Save(&existingWebsite)
 	}
 
 	c.Redirect(302, "/admin/websites")
@@ -143,22 +147,23 @@ func (wc WebsiteController) FetchMeta(c *gin.Context) {
 		return
 	}
 
-	parsedURL, err := url.Parse(req.URL)
+	parsedURL, err := validateTargetURL(req.URL)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, FetchResponse{Code: -1, Msg: "无效的 URL 格式"})
+		c.JSON(http.StatusBadRequest, FetchResponse{Code: -1, Msg: err.Error()})
 		return
 	}
 
-	ip := net.ParseIP(parsedURL.Hostname())
-	if ip != nil && (ip.IsLoopback() || ip.IsPrivate()) {
-		c.JSON(http.StatusBadRequest, FetchResponse{Code: -1, Msg: "不允许访问局域网或本机地址"})
+	// 预先解析域名并确认不指向内网
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+	if err := resolveAndCheckHost(ctx, parsedURL.Hostname()); err != nil {
+		c.JSON(http.StatusBadRequest, FetchResponse{Code: -1, Msg: err.Error()})
 		return
 	}
 
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Get(req.URL)
+	client := newSafeHTTPClient()
+
+	resp, err := client.Get(parsedURL.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, FetchResponse{Code: -1, Msg: "请求目标网站失败：" + err.Error()})
 		return
@@ -170,7 +175,12 @@ func (wc WebsiteController) FetchMeta(c *gin.Context) {
 		return
 	}
 
-	body, _ := io.ReadAll(resp.Body)
+	// 限制响应体大小，防止内存耗尽
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxHTMLBodySize))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, FetchResponse{Code: -1, Msg: "读取目标网站内容失败"})
+		return
+	}
 	reader := bytes.NewReader(body)
 	htmlContent, err := charset.NewReaderLabel("", reader)
 	if err != nil {
@@ -195,10 +205,16 @@ func (wc WebsiteController) FetchMeta(c *gin.Context) {
 	var faviconURL string
 	faviconPaths := []string{"/favicon.ico", "/favicon.png"} // 默认的 favicon 路径
 	for _, path := range faviconPaths {
-		faviconURL = parsedURL.Scheme + "://" + parsedURL.Host + path // 拼接到完整 URL
-		resp, err := client.Get(faviconURL)                           // 尝试抓取
-		if err == nil && resp.StatusCode == 200 {                     // 如果抓取成功
-			break // 使用当前 faviconURL
+		candidate := parsedURL.Scheme + "://" + parsedURL.Host + path // 拼接到完整 URL
+		favResp, err := client.Get(candidate)                         // 尝试抓取
+		if err == nil {
+			// 即使成功也要关闭响应体，避免连接泄漏
+			io.Copy(io.Discard, io.LimitReader(favResp.Body, 1024))
+			favResp.Body.Close()
+			if favResp.StatusCode == 200 {
+				faviconURL = candidate
+				break // 使用当前 faviconURL
+			}
 		}
 		faviconURL = "" // 如果抓取失败，清空 faviconURL
 	}

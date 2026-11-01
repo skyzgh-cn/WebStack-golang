@@ -16,6 +16,9 @@ func AdminRoutersInit(r *gin.Engine) {
 		// 需要认证的路由
 		authorized := adminRouters.Group("/", middleware.AdminAuth())
 		{
+			// 写操作统一进行 CSRF 校验
+			authorized.Use(middleware.CSRF())
+
 			// 修改：确保路由映射正确
 			authorized.GET("/", admin.AdminController{}.Dashboard)
 			authorized.GET("/dashboard", admin.AdminController{}.Dashboard)

@@ -20,7 +20,10 @@ FROM alpine:latest
 # 更换为阿里云源并安装依赖
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk --no-cache add ca-certificates tzdata && \
-    mkdir -p /app/upload
+    addgroup -S webstack && \
+    adduser -S -G webstack webstack && \
+    mkdir -p /app/upload /app/db && \
+    chown -R webstack:webstack /app
 
 # 设置工作目录
 WORKDIR /app
@@ -30,7 +33,8 @@ COPY --from=builder /build/webstack /app/
 COPY --from=builder /build/default.sql /app/
 COPY --from=builder /build/config.json /app/
 
-
+# 切换为非 root 用户运行，降低容器逃逸风险
+USER webstack
 
 # 设置时区
 ENV TZ=Asia/Shanghai

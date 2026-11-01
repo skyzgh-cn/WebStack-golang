@@ -40,4 +40,19 @@ $(document).ready(function() {
 
     // 美化提示框
     $('.alert').delay(3000).fadeOut(500);
-}); 
+});
+
+// CSRF 防护：为所有 AJAX 请求统一附加 CSRF 令牌请求头
+(function() {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    if (!token) {
+        return;
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!this.crossDomain) {
+                xhr.setRequestHeader('X-CSRF-Token', token);
+            }
+        }
+    });
+})();
