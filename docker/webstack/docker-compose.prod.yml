@@ -24,7 +24,7 @@
 
 services:
   webstack:
-    image: skyzgh/webstack:v2.1.1
+    image: skyzgh/webstack:v2.1.2
     pull_policy: always
     container_name: webstack
     restart: unless-stopped
