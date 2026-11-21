@@ -108,11 +108,10 @@ jobs:
         with:
           images: skyzgh/webstack
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
             # 保留与 GitHub Release 一致的 v 前缀标签
             type=semver,pattern=v{{version}}
+            # 始终指向最新一次发布的镜像
+            type=raw,value=latest
 
       - name: Build and push
         uses: docker/build-push-action@v6
