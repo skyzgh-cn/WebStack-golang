@@ -91,7 +91,7 @@
 
 #方式三：Docker部署
 
-从 Docker Hub 拉取已发布镜像运行（`skyzgh/webstack:v2.1.2`，同时提供 `latest` 标签）。
+从 Docker Hub 拉取已发布镜像运行（`skyzgh/webstack:latest`，始终指向最新版本；也可改用固定版本号如 `v2.1.2`）。
 
 仓库内已提供部署文件 [docker/webstack/docker-compose.yml](docker/webstack/docker-compose.yml)，下载后按以下步骤操作：
 
