@@ -1,42 +1,35 @@
 # 服务器部署用配置：从 Docker Hub 拉取镜像运行
 #
 # 使用方式：
-#   1. cp .env.example .env   然后填入数据库密码等敏感信息
+#   1. cp config.json.example config.json   然后填入数据库密码等实际值
 #   2. docker compose -f docker-compose.prod.yml up -d
 #
-# 关键设计：使用 host 网络模式，容器直接复用宿主机的网络栈，
-# 因此可以访问宿主机上以非 Docker 方式运行的 MySQL，
-# 且无需为 MySQL 额外开放对外监听或修改用户授权来源。
+# 持久化说明：
+#   - config.json 挂载到 /app/config.json，容器直接读取宿主机的配置。
+#     程序仅读取该文件，不会写回，因此可以安全地保存在宿主机上。
+#   - upload 目录存放用户上传的文件（如站点 Logo），必须持久化。
+#   - config.json 所在目录是所有相对路径的基准，
+#     故 SQLite 数据库文件与 default.sql 均相对于 /app 解析，
+#     挂载到 /app/config.json 可保证与镜像内路径一致。
 
 services:
   webstack:
-    image: skyzgh/webstack:${WEBSTACK_VERSION:-latest}
+    image: skyzgh/webstack:v2.1.1
     pull_policy: always
     container_name: webstack
     restart: unless-stopped
 
-    # host 网络：直接使用宿主机的 127.0.0.1:3306 连接 MySQL
-    # 注意：使用 host 网络时 ports 配置无效，容器直接占用宿主机端口
+    # host 网络：直接使用宿主机的 127.0.0.1:3306 连接 MySQL，
+    # 无需为 MySQL 额外开放对外监听或修改用户授权来源。
+    # 注意：使用 host 网络时 ports 配置无效，容器直接占用宿主机端口。
     network_mode: host
 
     volumes:
-      # 上传的文件（Logo 等）需要持久化
+      # 站点配置文件（含数据库密码）
+      - ./config.json:/app/config.json:ro
+      # 用户上传的文件
       - ./data/upload:/app/upload
 
     environment:
       - GIN_MODE=release
       - TZ=Asia/Shanghai
-
-      # 数据库类型与连接参数
-      # 密码从同目录的 .env 文件读取，避免写入版本库
-      - WEBSTACK_DB_TYPE=mysql
-      - WEBSTACK_MYSQL_HOST=127.0.0.1
-      - WEBSTACK_MYSQL_PORT=3306
-      - WEBSTACK_MYSQL_USER=${MYSQL_USER:-webstack}
-      - WEBSTACK_MYSQL_PASSWORD=${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
-      - WEBSTACK_MYSQL_DATABASE=${MYSQL_DATABASE:-webstack}
-
-      # 站点启用 HTTPS 后将 secureCookie 设为 true
-      - WEBSTACK_SECURE_COOKIE=${WEBSTACK_SECURE_COOKIE:-false}
-      # 部署在反向代理之后时，在此列出可信代理的 IP/CIDR
-      - WEBSTACK_TRUSTED_PROXIES=${WEBSTACK_TRUSTED_PROXIES:-127.0.0.1}
