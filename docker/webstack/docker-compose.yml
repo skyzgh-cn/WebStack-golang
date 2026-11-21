@@ -1,29 +1,47 @@
+# 服务器部署用配置：从 Docker Hub 拉取镜像运行
+#
+# 使用方式：
+#   1. cp config.json.example config.json   然后填入数据库密码等实际值
+#   2. mkdir -p data/upload data/db
+#   3. sudo chown -R 100:101 data            属主须与容器内 webstack 用户一致
+#   4. docker compose up -d
+#
+# 持久化说明：
+#   - config.json 挂载到 /app/config.json，容器直接读取宿主机的配置。
+#     程序仅读取该文件，不会写回，因此可以安全地保存在宿主机上。
+#   - upload 存放用户上传的文件（如站点 Logo），必须持久化。
+#   - db 存放 SQLite 数据库文件。使用 MySQL 时该目录为空，
+#     但仍需挂载，否则切换回 SQLite 时数据会随容器重建丢失。
+#   - config.json 所在目录是所有相对路径的基准，
+#     故 SQLite 数据库文件与 default.sql 均相对于 /app 解析，
+#     挂载到 /app/config.json 可保证与镜像内路径一致。
+#
+# 权限说明：
+#   容器以非 root 用户 webstack(uid=100, gid=101) 运行。
+#   Docker 自动创建的宿主挂载目录属主为 root:root 且权限为 755，
+#   此时容器内进程无法写入，因此需预先创建目录并修改属主，
+#   否则 SQLite 初始化与文件上传会因权限不足失败。
+
 services:
   webstack:
-    build:
-      context: ../../
-      dockerfile: docker/webstack/Dockerfile  
-    image: skyzgh/webstack:latest
+    image: skyzgh/webstack:v2.1.2
+    pull_policy: always
     container_name: webstack
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+
+    # host 网络：直接使用宿主机的 127.0.0.1:3306 连接 MySQL，
+    # 无需为 MySQL 额外开放对外监听或修改用户授权来源。
+    # 注意：使用 host 网络时 ports 配置无效，容器直接占用宿主机端口。
+    network_mode: host
+
     volumes:
-       - ./data/upload:/app/upload
-       - ./data/db:/app/db
+      # 站点配置文件（含数据库密码）
+      - ./config.json:/app/config.json:ro
+      # 用户上传的文件
+      - ./data/upload:/app/upload
+      # SQLite 数据库文件（使用 MySQL 时为空目录）
+      - ./data/db:/app/db
+
     environment:
       - GIN_MODE=release
-      - COMPOSE_BAKE=true
-      # 站点启用 HTTPS 后请将 secureCookie 设为 true
-      # - WEBSTACK_SECURE_COOKIE=true
-      # 部署在反向代理之后时，在此列出可信代理的 IP/CIDR
-      # - WEBSTACK_TRUSTED_PROXIES=172.17.0.1
-      # 使用 MySQL 时，通过环境变量传入密码，避免写入版本库
-      # - WEBSTACK_DB_TYPE=mysql
-      # - WEBSTACK_MYSQL_PASSWORD=your_password
-    networks:
-      - webstack_net
-
-networks:
-  webstack_net:
-    driver: bridge
+      - TZ=Asia/Shanghai

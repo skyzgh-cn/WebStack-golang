@@ -91,32 +91,37 @@
 
 #方式三：Docker部署
 
-docker-compose方式部署（docker hub：skyzgh/webstack:latest）
-部署代码：
- ```
- services:
-  webstack:
-    build:
-      context: ../../
-      dockerfile: docker/webstack/Dockerfile  
-    image: skyzgh/webstack:latest
-    container_name: webstack
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-       - ./data/upload:/app/upload
-       - ./data/db:/app/db
-    environment:
-      - GIN_MODE=release
-      - COMPOSE_BAKE=true
-    networks:
-      - webstack_net
+从 Docker Hub 拉取已发布镜像运行（`skyzgh/webstack:v2.1.2`，同时提供 `latest` 标签）。
 
-networks:
-  webstack_net:
-    driver: bridge
+仓库内已提供部署文件 [docker/webstack/docker-compose.yml](docker/webstack/docker-compose.yml)，下载后按以下步骤操作：
+
+ ```
+# 1. 进入部署目录
+cd /www/wwwroot/site.skyzgh.com/app/docker/webstack
+
+# 2. 生成配置文件并填写数据库密码等实际值
+cp config.json.example config.json
+vi config.json
+
+# 3. 创建持久化目录并修正属主（容器内 webstack 用户为 uid=100, gid=101）
+mkdir -p data/upload data/db
+sudo chown -R 100:101 data
+
+# 4. 启动
+docker compose up -d
+docker compose logs -f
   ```
+
+部署文件使用 host 网络，容器直接访问宿主机的 `127.0.0.1:3306`，
+因此本机 MySQL 无需改为对外监听，也无需额外添加 `172.17.%` 的授权。
+
+持久化说明：
+
+| 宿主机路径 | 容器内路径 | 说明 |
+| --- | --- | --- |
+| `./config.json` | `/app/config.json` | 站点配置（含数据库密码），只读挂载 |
+| `./data/upload` | `/app/upload` | 用户上传的文件，如站点 Logo |
+| `./data/db` | `/app/db` | SQLite 数据库文件（使用 MySQL 时为空目录） |
 
 [1]: https://blog.skyzgh.com/usr/uploads/2025/05/1645397260.png
   [2]: https://blog.skyzgh.com/usr/uploads/2025/05/3665417208.png
