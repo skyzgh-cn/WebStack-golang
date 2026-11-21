@@ -1,0 +1,29 @@
+# 构建产物
+/webstack
+/webstack.exe
+/dist
+/dist/
+
+# 运行时数据，不应进入镜像
+/db
+/db/
+/upload
+/upload/
+
+# 版本控制与 IDE
+.git
+.gitignore
+.github
+.idea
+.vscode
+.screenshots
+
+# 文档
+*.md
+LICENSE
+!README.md
+
+# 临时文件
+*.log
+*.tar.gz
+*.zip
