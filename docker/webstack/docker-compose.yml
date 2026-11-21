@@ -2,9 +2,26 @@
 #
 # 使用方式：
 #   1. cp config.json.example config.json   然后填入数据库密码等实际值
+#      注意 mysql.host 必须填 172.28.0.1（网关地址），不能填 127.0.0.1
 #   2. mkdir -p data/upload data/db
 #   3. sudo chown -R 100:101 data            属主须与容器内 webstack 用户一致
 #   4. docker compose up -d
+#
+# 网络说明：
+#   - 使用自定义 bridge 网络，容器固定 IP 为 172.28.0.2，网关为 172.28.0.1。
+#   - 容器内访问宿主机上的 MySQL 时，连接的是网关地址 172.28.0.1:3306，
+#     这是 bridge 网络下访问宿主机的唯一途径（容器内的 127.0.0.1 指向容器自己）。
+#   - 因为容器 IP 固定，MySQL 只需授权一个具体来源：
+#       CREATE USER IF NOT EXISTS 'webstack'@'172.28.0.2' IDENTIFIED BY '密码';
+#       GRANT ALL PRIVILEGES ON webstack.* TO 'webstack'@'172.28.0.2';
+#       FLUSH PRIVILEGES;
+#     同时需确保 MySQL 的 bind-address 不是 127.0.0.1，否则拒绝非本地连接。
+#   - 网段 172.28.0.0/24 需与服务器现有内网网段不冲突，可自行调整。
+#
+# 端口说明：
+#   - 8080 只绑定到宿主机的 127.0.0.1，外部无法直接访问，
+#     统一由宿主机 Nginx 反向代理到 127.0.0.1:8080。
+#   - 如需直接对外暴露（不接反向代理），改为 "8080:8080" 并自行做好防护。
 #
 # 持久化说明：
 #   - config.json 挂载到 /app/config.json，容器直接读取宿主机的配置。
@@ -17,10 +34,10 @@
 #     挂载到 /app/config.json 可保证与镜像内路径一致。
 #
 # 权限说明：
-#   容器以非 root 用户 webstack(uid=100, gid=101) 运行。
-#   Docker 自动创建的宿主挂载目录属主为 root:root 且权限为 755，
-#   此时容器内进程无法写入，因此需预先创建目录并修改属主，
-#   否则 SQLite 初始化与文件上传会因权限不足失败。
+#   - 容器以非 root 用户 webstack(uid=100, gid=101) 运行。
+#   - Docker 自动创建的宿主挂载目录属主为 root:root 且权限为 755，
+#     此时容器内进程无法写入，因此需预先创建目录并修改属主，
+#     否则 SQLite 初始化与文件上传会因权限不足失败。
 
 services:
   webstack:
@@ -29,10 +46,9 @@ services:
     container_name: webstack
     restart: unless-stopped
 
-    # host 网络：直接使用宿主机的 127.0.0.1:3306 连接 MySQL，
-    # 无需为 MySQL 额外开放对外监听或修改用户授权来源。
-    # 注意：使用 host 网络时 ports 配置无效，容器直接占用宿主机端口。
-    network_mode: host
+    # 端口映射：仅绑定回环地址，供宿主机 Nginx 反向代理使用
+    ports:
+      - "127.0.0.1:8080:8080"
 
     volumes:
       # 站点配置文件（含数据库密码）
@@ -45,3 +61,16 @@ services:
     environment:
       - GIN_MODE=release
       - TZ=Asia/Shanghai
+
+    networks:
+      webstack_net:
+        # 固定容器 IP，MySQL 按此授权
+        ipv4_address: 172.28.0.2
+
+networks:
+  webstack_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1

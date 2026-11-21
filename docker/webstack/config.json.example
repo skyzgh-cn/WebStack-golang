@@ -5,11 +5,11 @@
     "port": "8080",
     "dbtype": "mysql",
     "secureCookie": false,
-    "trustedProxies": ["127.0.0.1"]
+    "trustedProxies": ["172.28.0.1"]
   },
   "mysql": {
     "type": "mysql",
-    "host": "127.0.0.1",
+    "host": "172.28.0.1",
     "port": "3306",
     "user": "webstack",
     "password": "",

@@ -112,8 +112,38 @@ docker compose up -d
 docker compose logs -f
   ```
 
-部署文件使用 host 网络，容器直接访问宿主机的 `127.0.0.1:3306`，
-因此本机 MySQL 无需改为对外监听，也无需额外添加 `172.17.%` 的授权。
+部署文件使用自定义 bridge 网络，容器固定 IP 为 `172.28.0.2`，网关为 `172.28.0.1`。
+应用端口 `8080` 只绑定到宿主机的 `127.0.0.1`，外部无法直接访问，由宿主机 Nginx 反向代理进入。
+
+MySQL 授权（容器 IP 固定，只需授权这一个来源）：
+
+```
+CREATE USER IF NOT EXISTS 'webstack'@'172.28.0.2' IDENTIFIED BY '密码';
+GRANT ALL PRIVILEGES ON webstack.* TO 'webstack'@'172.28.0.2';
+FLUSH PRIVILEGES;
+```
+
+同时确认 MySQL 的 `bind-address` 不是 `127.0.0.1`（否则会拒绝来自容器的连接），并保证防火墙未放行 3306 公网访问。
+
+Nginx 反向代理配置：
+
+```
+server {
+    listen 443 ssl http2;
+    server_name site.skyzgh.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+启用 HTTPS 后，需将 `config.json` 中的 `secureCookie` 改为 `true`，
+并将 `trustedProxies` 保持为网关地址 `172.28.0.1`（容器内观察到的代理来源 IP）。
 
 持久化说明：
 
