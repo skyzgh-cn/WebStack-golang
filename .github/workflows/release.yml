@@ -111,13 +111,16 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
+            # 保留与 GitHub Release 一致的 v 前缀标签
+            type=semver,pattern=v{{version}}
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/webstack/Dockerfile
-          platforms: linux/amd64
+          # 同时产出 amd64 与 arm64 镜像
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
